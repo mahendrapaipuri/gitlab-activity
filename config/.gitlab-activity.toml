@@ -111,7 +111,7 @@
 # These labels will be used in generating subsets of MRs for the markdown report.
 #
 # Keys in each dict should be
-# labels: List of labels used in issues and MRs
+# labels: List of labels used in issues and MRs. It can be strings or regex expressions.
 # pre: List of prefixes used in isses and MRs titles, e.g., FEAT: Support new DB backend
 # description: Description to be used in the Changelog file
 #
@@ -143,6 +143,7 @@ labels_metadata = [
 ]
 
 # bot_users should be a list of users that repository/group uses.
+# These names can be literal strings or regex expressions
 # These users will be omitted from contributors list in the Changelog
 bot_users = [
   "codecov",

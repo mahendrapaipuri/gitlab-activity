@@ -360,7 +360,10 @@ def generate_activity_md(
                 continue
 
             # If username is in list of bot_users config, skip them
-            if bot_users is not None and commenter['node']['username'] in bot_users:
+            if bot_users is not None and any(
+                re.match(rf'{user}', commenter['node']['username'])
+                for user in bot_users
+            ):
                 continue
 
             # A tuple of author's username and webURL
