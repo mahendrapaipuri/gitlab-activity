@@ -26,7 +26,8 @@ two things:
 - `gitlab-activity` configuration supports `pyproject.toml` for Python projects,
   `package.json` for Node projects. For other projects, configuration can be included
   in a file `.gitlab-activity.toml` in the root of the repository.
-- It can be integrated into CI release jobs to update the changelogs from last stable tag to current before making the release.
+- It can be integrated into CI release jobs to update the changelogs from last stable
+  tag to current before making the release.
 
 ---
 

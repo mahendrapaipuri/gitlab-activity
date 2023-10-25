@@ -18,9 +18,11 @@ def git_installed_check():
 def get_remote_ref():
     """Return the remote reference of repository by querying the local repo or None."""
     out = subprocess.run(['git', 'remote', '-v'], check=True, stdout=subprocess.PIPE)
-    remotes = out.stdout.decode().split("\n")
+    remotes = out.stdout.decode().split('\n')
     remotes = {
-        remote.split('\t')[0]: remote.split('\t')[1].split()[0] for remote in remotes
+        remote.split('\t')[0]: remote.split('\t')[1].split()[0]
+        for remote in remotes
+        if remote
     }
     if 'upstream' in remotes:
         return remotes['upstream']
@@ -34,8 +36,13 @@ def get_latest_tag(domain, target, targetid, local, auth):
     """Return the latest tag name for a given repository."""
     # If it is local repo, run git command to get all tags
     if local:
-        out = subprocess.run(
-            ['git', 'describe', '--tags'], check=True, stdout=subprocess.PIPE
-        )
-        return out.stdout.decode().rsplit("-", 2)[0]
+        try:
+            out = subprocess.run(
+                ['git', 'describe', '--tags'], check=True, stdout=subprocess.PIPE
+            )
+        except subprocess.CalledProcessError:
+            msg = f'No tags found for the target {target}'
+            raise RuntimeError(msg) from None
+        else:
+            return out.stdout.decode().rsplit("-", 2)[0]
     return get_latest_tag_remote(domain, target, targetid, auth)

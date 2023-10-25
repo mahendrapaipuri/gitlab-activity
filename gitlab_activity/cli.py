@@ -292,9 +292,6 @@ def main(**kwargs):
             )
             sys.exit(1)
 
-        # Override changelog_path with absolute one
-        kwargs['output'] = changelog_path
-
     # Ensure since is provided if group is set as target
     _, _, target_type, _ = parse_target(kwargs['target'], kwargs['auth'])
     if target_type in ['group', 'namespace'] and not kwargs['since']:

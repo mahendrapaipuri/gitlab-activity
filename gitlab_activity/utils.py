@@ -31,7 +31,7 @@ class CustomParamType(click.ParamType):
     def convert(self, value, param, ctx):
         try:
             if isinstance(value, list):
-                return [dict(d) for d in value if not isinstance(d, str)]
+                return value
 
             # First convert to list
             return json.loads(value.replace("'", '"'))
@@ -434,6 +434,8 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, auth):
         except Exception:
             msg = f'{datetime_or_git_ref} not found as a ref or valid date format'
             raise RuntimeError(msg) from None
+        else:
+            return (dt, False)
     else:
         return (dt, True)
 

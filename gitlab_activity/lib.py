@@ -68,7 +68,7 @@ def get_activity(target, since, until=None, kind=None, auth=None, cached=False):
     if kind and kind not in ALLOWED_KINDS:
         msg = f'Kind must be one of {ALLOWED_KINDS}'
         raise RuntimeError(msg)
-    requested_kind = list(kind) if kind else ALLOWED_KINDS
+    requested_kind = [kind] if kind else ALLOWED_KINDS
 
     # Query for both opened and closed issues/mergeRequests in this window
     query_data = []
