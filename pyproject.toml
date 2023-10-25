@@ -179,4 +179,54 @@ omit = [
 
 [tool.coverage.xml]
 output = "coverage.xml"
- 
+
+[tool.gitlab-activity.options]
+# Changelog file path
+output = "CHANGELOG.md"
+# Only query for merge requests
+kind = "mergeRequests"
+# Append to existing file
+append = true
+# Add list of contributors to each entry
+include_contributors_list = true
+
+[tool.gitlab-activity.repository]
+# Labels used in the repository
+labels_metadata = [
+  { labels = [ "feature", "feat", "new" ],
+    pre = [ "NEW", "FEAT", "FEATURE" ], 
+    description = "New features added" },
+
+  { labels = [ "enhancement", "enhancements" ], 
+    pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], 
+    description = "Enhancements made" },
+
+  { labels = [ "bug", "bugfix", "bugs" ], 
+    pre = [ "FIX", "BUG" ], 
+    description = "Bugs fixed" },
+
+  { labels = [ "packaging", "build" ], 
+    pre = [ "BUILD", ], 
+    description = "Build changes" },
+
+  { labels = [ "maintenance", "maint" ], 
+    pre = [ "MAINT", "MNT" ], 
+    description = "Maintenance and upkeep improvements" },
+
+  { labels = [ "documentation", "docs", "doc" ], 
+    pre = [ "DOC", "DOCS" ], 
+    description = "Documentation improvements" },
+  
+  { labels = [ "deprecation", "deprecate" ], 
+    pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], 
+    description = "Deprecated features" },
+]
+
+# List of bot_users
+bot_users = [
+  "codecov",
+  "codeco-io",
+  "dependabot",
+  "gitlab-bot",
+  "pre-commit-ci",
+]
