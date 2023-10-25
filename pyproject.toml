@@ -202,6 +202,8 @@ labels_metadata = [
 
   { labels = [ "packaging", "build" ], pre = [ "BUILD", ], description = "Build changes" },
 
+  { labels = [ "ci" ], pre = [ "CI", ], description = "CI changes" },
+
   { labels = [ "maintenance", "maint" ], pre = [ "MAINT", "MNT" ], description = "Maintenance and upkeep improvements" },
 
   { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
