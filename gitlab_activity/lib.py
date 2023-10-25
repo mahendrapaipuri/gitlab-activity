@@ -308,6 +308,11 @@ def generate_activity_md(
     -------
     entry: str
         The markdown changelog entry.
+
+    Raises
+    ------
+    RuntimeError
+        When since is None and no latest tag is available for target
     """
     domain, target, target_type, targetid = parse_target(target, auth)
 
@@ -315,6 +320,14 @@ def generate_activity_md(
     # using the _local_ git repostory
     if since is None:
         since = get_latest_tag(domain, target, targetid, local, auth)
+
+        # If we failed to get latest_tag raise an exception
+        if since is None:
+            msg = (
+                f'Failed to get latest tag for target {target}. '
+                f'Please provide a valid datestring using --since/-s option'
+            )
+            raise RuntimeError(msg)
 
     # Grab the data according to our query
     data = get_activity(

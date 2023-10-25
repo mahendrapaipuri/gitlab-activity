@@ -265,6 +265,7 @@ def get_latest_tag_remote(domain, target, targetid, auth):
     tags = get_all_tags(domain, target, targetid, auth)
     if tags is not None:
         return tags[0][0]
+    log(f'No tags found for the target {target}')
     return None
 
 
