@@ -1,0 +1,217 @@
+[build-system]
+requires = ["hatchling>=1.5.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gitlab_activity"
+description = "Grab recent issue/PR activity from a GitLab repository and render it as markdown."
+license = { file = "LICENSE" }
+authors = [
+    { name = "Mahendra Paipuri", email = "mahendra.paipuri@gmail.com" },
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Software Development :: Build Tools",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "click",
+    "toml",
+    "markdown",
+    "importlib_resources",
+    "numpy",
+    "pandas",
+    "python-dateutil",
+    "requests",
+    "tqdm",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://gitlab.com/mahendrapaipuri/gitlab-activity"
+"Source Code" = "https://gitlab.com/mahendrapaipuri/gitlab-activity"
+
+[project.optional-dependencies]
+# Test related dependencies
+test = [
+    "pytest", 
+    "pytest-regressions"
+]
+# Coverage requirements
+test-cov = [
+    "gitlab_activity[test]",
+    "pytest-cov>=2.6.1",
+]
+dev = [
+    "gitlab_activity[test-cov]",
+    "pre-commit",
+]
+
+[project.scripts]
+"gitlab-activity" = "gitlab_activity.cli:main"
+
+[tool.hatch.version]
+# Read version string from _version.py and use it for the package
+path = "gitlab_activity/_version.py"
+
+[tool.check-wheel-contents]
+ignore = ["W002"]  # Triggers on __init__.py's
+
+# ruff config
+[tool.ruff]
+line-length = 88
+select = [
+    "E", "F", "W", # flake8
+    "B",           # flake8-bugbear
+    "ARG",         # flake8-unused-arguments
+    "C4",          # flake8-comprehensions
+    "EM",          # flake8-errmsg
+    "ICN",         # flake8-import-conventions
+    "ISC",         # flake8-implicit-str-concat
+    "PGH",         # pygrep-hooks
+    "PIE",         # flake8-pie
+    "PL",          # pylint
+    "PT",          # flake8-pytest-style
+    "PTH",         # flake8-use-pathlib
+    "RET",         # flake8-return
+    "RUF",         # Ruff-specific
+    "SIM",         # flake8-simplify
+    "TID251",      # flake8-tidy-imports.banned-api
+    "T20",         # flake8-print
+    "UP",          # pyupgrade
+    "YTT",         # flake8-2020
+    "ANN204",      # Add -> None to __init__
+    "S307",        # eval -> literal_eval
+    "TCH",         # flake8-type-checking
+    "PERF",        # perflint
+    "FLY",         # flynt
+    "TRY",         # tryceratops
+]
+exclude = [
+    "tests/*",
+]
+# Seems like W503 is not implemented in ruff
+# ref: https://github.com/astral-sh/ruff/issues/4125
+ignore = [
+    "E203", "E231",
+    "TRY003",     # Avoid specifying long messages outside the exception class
+    "PLR0912",    # Too-many-arguments
+    "PLR0913",    # Too many branches
+    "PLR0915",    # Too many statements
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 88
+skip-string-normalization = true
+target-version = [
+    'py38',
+    'py39',
+    'py310',
+    'py311',
+]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--verbose",
+    "--color=yes",
+    "--cov-report=xml",
+    "--cov=gitlab_activity",
+    "--cov-branch",
+]
+python_files = "test_*.py"
+markers = [
+    "group: mark as a test for groups",
+    "services: mark as a services test",
+    "user: mark as a test for a user",
+    "slow: mark a test as slow",
+]
+filterwarnings = [
+    "error",
+    "ignore:Config variable '.*' is unset, Python ABI tag may be incorrect:RuntimeWarning",
+    "default:pkg_resources is deprecated as an API:DeprecationWarning:wheel",  # Caused by wheel<0.41 in tests
+    "default:onerror argument is deprecated, use onexc instead:DeprecationWarning:wheel", # Caused by wheel<0.41 & Python 3.12
+    "default:The distutils package is deprecated and slated for removal:DeprecationWarning",  # Caused by setuptools sometimes
+    "default:The distutils.sysconfig module is deprecated, use sysconfig instead:DeprecationWarning",  # Caused by setuptools sometimes
+    "default:check_home argument is deprecated and ignored.:DeprecationWarning",  # Caused by setuptools sometimes
+]
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+]
+parallel = true
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    "if self.debug:",
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise NotImplementedError",
+    "except ImportError",
+]
+ignore_errors = true
+omit = [
+    "tests/*",
+    "gitlab_activity/_version.py",
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.gitlab-activity.options]
+# Changelog file path
+output = "CHANGELOG.md"
+# Only query for merge requests
+kind = "mergeRequests"
+# Append to existing file
+append = true
+# Add list of contributors to each entry
+include_contributors_list = true
+
+[tool.gitlab-activity.repository]
+# Labels used in the repository
+# Dicts must be inline for linters not to complain
+labels_metadata = [
+  { labels = [ "feature", "feat", "new" ], pre = [ "NEW", "FEAT", "FEATURE" ], description = "New features added" },
+
+  { labels = [ "enhancement", "enhancements" ], pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], description = "Enhancements made" },
+
+  { labels = [ "bug", "bugfix", "bugs" ], pre = [ "FIX", "BUG" ], description = "Bugs fixed" },
+
+  { labels = [ "packaging", "build" ], pre = [ "BUILD", ], description = "Build changes" },
+
+  { labels = [ "ci" ], pre = [ "CI", ], description = "CI changes" },
+
+  { labels = [ "maintenance", "maint" ], pre = [ "MAINT", "MNT" ], description = "Maintenance and upkeep improvements" },
+
+  { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
+  
+  { labels = [ "deprecation", "deprecate" ], pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], description = "Deprecated features" },
+]
+
+# List of bot_users
+bot_users = [
+  "codecov",
+  "codeco-io",
+  "dependabot",
+  "gitlab-bot",
+  "pre-commit-ci",
+]

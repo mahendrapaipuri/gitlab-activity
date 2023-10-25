@@ -1,0 +1,61 @@
+{
+  "title": "Gitlab Activity Metadata",
+  "version": "0.1.0",
+  "description": "Gitlab Activity configuration metadata",
+  "properties": {
+    "options": {
+      "title": "Overrides for default options",
+      "description": "Overrides for cli option names",
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "number"
+          }
+        ]
+      }
+    },
+    "repository": {
+      "title": "Metadata of the Repository or Group",
+      "description": "Metadata of labels and bot users of repository or group",
+      "type": "object",
+      "additionalProperties": {
+        "labels_metadata": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "pre": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "bot_users": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,145 @@
+# gitlab-activity is a tool to generate changelog for GitLab based 
+# repositories.
+#
+# Config reference: TODO
+#
+# This file can be used to configure gitlab-activity CLI flags alongside the
+# repository/group's metadata namely labels used to mark issues and MRs and 
+# list of bot users
+#
+# All the CLI options can be configured in the file under section [options]
+# The section [repository] serves to configure the Issues/MRs labels metadata
+# and to define list of bot users for the target
+# 
+# CLI options
+[options]
+# The GitLab organization/repo for which you want
+# to grab recent issues/mergeRequests. Can either
+# be *just* an organization (e.g., `gitlab-org`),
+# or a combination organization and repo (e.g.,
+# `gitlab-org/gitlab-docs`). If the former, all
+# repositories for that org will be used. If the
+# latter, only the specified repository will be
+# used.
+
+# Can also be a GitLab URL to an organization or
+# repo e.g.,  https://gitlab.com/gitlab-
+# org/gitlab-docs.
+
+# Self hosted gitlab instances are also
+# supported. Ensure that full URL of  the
+# organization or repository is provided when
+# using self hosted instances.  In absence of
+# domain in the URL, gitlab.com will be used.
+
+# If empty, the org/repo will attempt to be
+# inferred from `git remote -v`.
+# target = "gitlab-org/gitlab-docs"
+
+# The branch or reference name to filter pull
+# requests by
+# branch = "main"
+
+# Return issues/mergeRequests with activity since
+# this date or git reference.  Can be any string
+# that is parsed with dateutil.parser.parse.
+# since = "2023-10-01"
+
+# Return issues/mergeRequests with activity until
+# this date or git reference. Can be any string
+# that is parsed with dateutil.parser.parse. If
+# empty, today's date will be used.
+# until = "2023-10-10"
+
+# Write the markdown to a file if desired.
+# output = "CHANGELOG.md"
+
+# Whether to append to the existing output file.
+# If this flag is active there should be a marker
+
+# <!-- <START NEW CHANGELOG ENTRY> -->
+
+# in the existing changelog file. In the absence
+# of this marker an error will be raised.
+# append = false
+
+# Return only issues or mergeRequests. If None,
+# both will be returned.
+# kind = ""
+
+# An authentication token for GitLab. If None,
+# then the environment  variable
+# `GITLAB_ACCESS_TOKEN` will be tried. If it does
+# not exist  then attempt to infer the token from
+# `glab auth status -t`.
+#
+# IMPORTANT: Never set your token in the config file as it will be public
+# By default, GitLab CI will generate a new token for every CI pipeline and if this
+# tool is used in the CI, gitlab-activity will use that token
+# auth = "mysupersecrettoken"
+
+# Base heading level to add when generating
+# markdown. Useful when including changelog
+# output in an existing document. By default,
+# changelog is emitted with one h1 and an h2
+# heading for each section. --heading-level=2
+# starts at h2, etc.
+# heading_level = 1
+
+# Include list of opened issues/MRs in the output
+# include_opened = false
+
+# Include a list of contributors at the end of each release log
+# include_contributors_list = false
+
+# If True, strip any text between brackets at the beginning of the issue/PR 
+# title. E.g., [MRG], [DOC], etc.
+# strip_brackets = false
+
+# Whether to include all the GitLab tags
+# all = false
+
+# Whether to cache activity data in CSV files.
+# The data files can be found at
+# ~/.cache/gitlab-activity-cache folder organized
+# based on org/repo.
+# cache = false
+
+
+#
+# labels_metadata should be a list of dicts that contain different tags.
+# These labels will be used in generating subsets of MRs for the markdown report.
+#
+# Keys in each dict should be
+# labels: List of labels used in issues and MRs. It can be strings or regex expressions.
+# pre: List of prefixes used in isses and MRs titles, e.g., FEAT: Support new DB backend
+# description: Description to be used in the Changelog file
+#
+[repository]
+# Dicts must be inline for linters not to complain
+labels_metadata = [
+  { labels = [ "feature", "feat", "new" ], pre = [ "NEW", "FEAT", "FEATURE" ], description = "New features added" },
+
+  { labels = [ "enhancement", "enhancements" ], pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], description = "Enhancements made" },
+
+  { labels = [ "bug", "bugfix", "bugs" ], pre = [ "FIX", "BUG" ], description = "Bugs fixed" },
+
+  { labels = [ "maintenance", "maint" ], pre = [ "MAINT", "MNT" ], description = "Maintenance and upkeep improvements" },
+
+  { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
+  
+  { labels = [ "deprecation", "deprecate" ], pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], description = "Deprecated features" },
+]
+
+# bot_users should be a list of users that repository/group uses.
+# These names can be literal strings or regex expressions
+# These users will be omitted from contributors list in the Changelog
+bot_users = [
+  "codecov",
+  "codeco-io",
+  "dependabot",
+  "gitlab-bot",
+  "pre-commit-ci",
+  "welcome",
+  "stale",
+]
