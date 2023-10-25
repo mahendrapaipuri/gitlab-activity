@@ -192,34 +192,21 @@ include_contributors_list = true
 
 [tool.gitlab-activity.repository]
 # Labels used in the repository
+# Dicts must be inline for linters not to complain
 labels_metadata = [
-  { labels = [ "feature", "feat", "new" ],
-    pre = [ "NEW", "FEAT", "FEATURE" ], 
-    description = "New features added" },
+  { labels = [ "feature", "feat", "new" ], pre = [ "NEW", "FEAT", "FEATURE" ], description = "New features added" },
 
-  { labels = [ "enhancement", "enhancements" ], 
-    pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], 
-    description = "Enhancements made" },
+  { labels = [ "enhancement", "enhancements" ], pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], description = "Enhancements made" },
 
-  { labels = [ "bug", "bugfix", "bugs" ], 
-    pre = [ "FIX", "BUG" ], 
-    description = "Bugs fixed" },
+  { labels = [ "bug", "bugfix", "bugs" ], pre = [ "FIX", "BUG" ], description = "Bugs fixed" },
 
-  { labels = [ "packaging", "build" ], 
-    pre = [ "BUILD", ], 
-    description = "Build changes" },
+  { labels = [ "packaging", "build" ], pre = [ "BUILD", ], description = "Build changes" },
 
-  { labels = [ "maintenance", "maint" ], 
-    pre = [ "MAINT", "MNT" ], 
-    description = "Maintenance and upkeep improvements" },
+  { labels = [ "maintenance", "maint" ], pre = [ "MAINT", "MNT" ], description = "Maintenance and upkeep improvements" },
 
-  { labels = [ "documentation", "docs", "doc" ], 
-    pre = [ "DOC", "DOCS" ], 
-    description = "Documentation improvements" },
+  { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
   
-  { labels = [ "deprecation", "deprecate" ], 
-    pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], 
-    description = "Deprecated features" },
+  { labels = [ "deprecation", "deprecate" ], pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], description = "Deprecated features" },
 ]
 
 # List of bot_users
