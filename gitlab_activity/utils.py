@@ -52,7 +52,7 @@ RepoDataParamType = CustomParamType()
 def log(*outputs, **kwargs):
     """Log an output to stderr"""
     kwargs.setdefault('file', sys.stderr)
-    print(*outputs, **kwargs)
+    print(*outputs, **kwargs)  # noqa: T201
 
 
 def read_config(path):
