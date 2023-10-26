@@ -1,4 +1,6 @@
-# gitlab-activity
+# GitLab Changelog Generator
+
+## What is it about?
 
 Generate simple markdown changelogs for GitLab repositories. GitLab provides an
 [API endpoint](https://docs.gitlab.com/ee/user/project/changelogs.html) to generate
@@ -19,6 +21,15 @@ two things:
    use the [GitLab GraphQL API](https://docs.gitlab.com/ee/api/graphql/reference/index.html)
    to return a DataFrame of all issue and MR activity for this time period.
 2. A CLI to render this activity as markdown, suitable for generating changelogs.
+
+## Prior art
+
+- [gitlab-changelog-generator](https://github.com/stuartmccoll/gitlab-changelog-generator)
+  is a command line utility distributed as Python package to generate changelogs.
+  However, it is mostly outdated and I could not make it work as of 2023.
+- [gitlab-changelog-generator](https://github.com/skywinder/gitlab-changelog-generator)
+  is another tool to generate changelogs based on Ruby. However there has been no
+  development since last few years.
 
 ## Features
 
