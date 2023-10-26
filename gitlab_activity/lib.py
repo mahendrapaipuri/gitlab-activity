@@ -1,5 +1,6 @@
 """Use the GraphQL api to grab issues/MRs that match a query."""
 import datetime
+import os
 import re
 from pathlib import Path
 
@@ -149,7 +150,7 @@ def generate_all_activity_md(
         If target is a local repository.
     labels_metadata : list of dict | None, default: None
         A list of the dict of labels with their metadata to use in generating
-        subsets of MRs for the markdown report.
+        groups of MRs for the markdown report.
 
         Must be one of form:
 
@@ -159,7 +160,7 @@ def generate_all_activity_md(
                  "description": "New features added" },
             ]
 
-        If None, all of the MRs will be placed as one subset.
+        If None, all of the MRs will be placed as one group.
     bot_users: list of str | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
         that contain 'bot' will be treated as bot users.
@@ -175,12 +176,16 @@ def generate_all_activity_md(
     # Parse GitLab domain, org and repo
     domain, target, target_type, targetid = parse_target(target, auth)
 
-    # Get all tags and sha for each tag
+    # Get all tags and sha for each tag for only projects
+    # For group activity use dummy tags and get activity between since and now
     if target_type == 'project':
         tags = get_all_tags(domain, target, targetid, auth)
     else:
         until = f'{datetime.datetime.now().astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
-        tags = [(f'Activity since {since}', until), (f'Activity since {since}', since)]
+        tags = [
+            (f'Activity since {since}', until, until),
+            (f'Activity since {since}', since, since),
+        ]
 
     # Generate a changelog entry for each version and sha range
     output = ''
@@ -189,10 +194,15 @@ def generate_all_activity_md(
         curr_tag = tags[i]
         prev_tag = tags[i + 1]
 
+        # Tag refs
         since_ref = prev_tag[1]
         until_ref = curr_tag[1]
 
+        # Tag name
         tag = curr_tag[0]
+
+        # Tag date. Use only date and strip time
+        tag_date = curr_tag[2].split('T')[0]
 
         log(f'Tag {i + 1} of {len(tags)} being processed')
         md = generate_activity_md(
@@ -220,7 +230,7 @@ def generate_all_activity_md(
         md = '\n'.join(md.splitlines()[1:])
 
         output += f"""
-## {tag}
+## {tag} ({tag_date})
 {md}
 """
     return output
@@ -286,7 +296,7 @@ def generate_activity_md(
         If target is a local repository.
     labels_metadata : list of dicts | None, default: None
         A list of the dict of labels with their metadata to use in generating
-        subsets of MRs for the markdown report.
+        groups of MRs for the markdown report.
 
         Must be one of form:
 
@@ -296,7 +306,7 @@ def generate_activity_md(
                  "description": "New features added" },
             ]
 
-        If None, all of the MRs will be placed as one subset.
+        If None, all of the MRs will be placed as one group.
     bot_users: list of strs | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
         that contain 'bot' will be treated as bot users.
@@ -580,14 +590,22 @@ def generate_activity_md(
     changelog_url = f'https://{domain}/{target}/-/compare/{since_ref}...{until_ref}?from_project_id={targetid}&straight=false'
 
     # Build the Markdown
-    md = [
-        f'{extra_head}# {since}...{until}',
-        '',
-    ]
+    # If there is a env var NEXT_VERSION_SPECIFIER, use it in the header
+    # Typically we can set it in CI pipelines that do releases
+    if os.environ.get('NEXT_VERSION_SPECIFIER'):
+        md = [
+            f"{extra_head}# {os.environ.get('NEXT_VERSION_SPECIFIER')} ({data.until_dt:%Y-%m-%d})",  # noqa: E501
+            '',
+        ]
+    else:
+        md = [
+            f'{extra_head}# {since}...{until}',
+            '',
+        ]
     # Add full changelog for only projects and do not add it for groups
     if target_type == 'project':
         md += [
-            f'([full changelog]({changelog_url}))',
+            f'([Full Changelog]({changelog_url}))',
         ]
 
     for info in mrs:

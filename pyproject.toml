@@ -185,6 +185,8 @@ kind = "mergeRequests"
 append = true
 # Add list of contributors to each entry
 include_contributors_list = true
+# Use heading level of 2 to account for top level heading
+heading_level = 2
 
 [tool.gitlab-activity.repository]
 # Labels used in the repository

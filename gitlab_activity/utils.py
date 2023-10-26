@@ -239,7 +239,9 @@ def get_all_tags(domain, target, targetid, auth):
 
     # Check if there is atleast one tag
     if len(response.json()) >= 1:
-        return [(t['name'], t['target']) for t in response.json()]
+        return [
+            (t['name'], t['target'], t['commit']['created_at']) for t in response.json()
+        ]
     return None
 
 
