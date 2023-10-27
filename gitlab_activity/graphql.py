@@ -83,6 +83,15 @@ GQL_ELEMENT_QUERY = {
             }
           }
         }
+        participants (first: 100) {
+          edges {
+            node {
+              username
+              webUrl
+              bot
+            }
+          }
+        }
 """,
     "issues": """\
         state
@@ -93,6 +102,7 @@ GQL_ELEMENT_QUERY = {
         createdAt
         updatedAt
         closedAt
+        mergeRequestsCount
         labels (first: 10) {
           edges {
             node {
@@ -106,7 +116,7 @@ GQL_ELEMENT_QUERY = {
           webUrl
           bot
         }
-        commenters (last: 100) {
+        participants (last: 100) {
           edges {
             node {
               username
@@ -147,7 +157,7 @@ class GitLabGraphQlQuery:
         domain,
         target,
         target_type,
-        kind,
+        activity,
         since,
         until,
         display_progress=True,
@@ -163,8 +173,8 @@ class GitLabGraphQlQuery:
           The GitLab query target. It can be a project, group or namespace
         target_type : string
           The GitLab query target type. It can be a project, group or namespace
-        kind : string
-          The kind of GitLab activity to query. Whether for issues or for
+        activity : string
+          The type of GitLab activity to query. Whether for issues or for
           mergeRequests
         since : string
           Activity since this date. It should be a date string
@@ -177,7 +187,7 @@ class GitLabGraphQlQuery:
           variable `GITLAB_ACCESS_TOKEN` will be tried.
         """
         self.domain = domain
-        self.kind = kind
+        self.activity = activity
         # Get headers
         self.headers = {
             'Authorization': f'Bearer {auth}',
@@ -196,7 +206,7 @@ class GitLabGraphQlQuery:
 
         # Form query strings
         self.search_query = (
-            f'{kind} (createdAfter: \"{since}\", createdBefore: \"{until}\")'
+            f'{activity} (createdAfter: \"{since}\", createdBefore: \"{until}\")'
         )
 
         self.gql_template = GQL_TEMPLATE
@@ -235,7 +245,7 @@ class GitLabGraphQlQuery:
         ).most_common()
 
     @staticmethod
-    def get_unique_contributors(users):
+    def get_unique_users(users):
         """map reviewer/committer graph to unique list of users excluding bots"""
         if pd.isna(users) or not users:
             return []
@@ -258,7 +268,7 @@ class GitLabGraphQlQuery:
         pageInfo = None
         self.issues_and_or_mrs = []
         for target in self.targets:
-            # log(f'Running {self.kind} query on target {target}')
+            # log(f'Running {self.activity} query on target {target}')
 
             # Make query string
             scope_query = f'{self.scope} (fullPath: \"{target}\")'
@@ -274,27 +284,29 @@ class GitLabGraphQlQuery:
                 gql_query = self.gql_template.format(
                     scope_query=scope_query,
                     search_query=gitlab_search_query,
-                    search_elements=GQL_ELEMENT_QUERY[self.kind],
+                    search_elements=GQL_ELEMENT_QUERY[self.activity],
                 )
 
                 # Parse the response for this pagination
                 json = self._request(gql_query)['data'][self.scope]
                 if ipage == 0:
-                    if json[self.kind]['count'] == 0:
-                        log(f'Found no entries for {self.kind} query.')
+                    if json[self.activity]['count'] == 0:
+                        log(
+                            f'Found no entries for {self.activity} query on target '
+                            f'{target}'
+                        )
                         break_from_target = True
                         break
 
-                    n_pages = int(np.ceil(json[self.kind]['count'] / n_per_page))
+                    n_pages = int(np.ceil(json[self.activity]['count'] / n_per_page))
                     log(
-                        'Found {} items, which will take {} pages'.format(
-                            json[self.kind]['count'], n_pages
-                        )
+                        f"Found {json[self.activity]['count']} items on "
+                        f"target {target}, which will take {n_pages} pages"
                     )
                     prog = tqdm(
-                        total=json[self.kind]['count'],
-                        desc='Downloading:',
-                        unit=self.kind,
+                        total=json[self.activity]['count'],
+                        desc='Downloading',
+                        unit=f' {self.activity}',
                         disable=n_pages == 1 or not self.display_progress,
                     )
 
@@ -303,12 +315,12 @@ class GitLabGraphQlQuery:
                     break
 
                 # Add the JSON to the raw data list
-                self.issues_and_or_mrs.extend(json[self.kind]['nodes'])
-                pageInfo = json[self.kind]['pageInfo']
+                self.issues_and_or_mrs.extend(json[self.activity]['nodes'])
+                pageInfo = json[self.activity]['pageInfo']
                 self.last_query = gql_query
 
                 # Update progress and should we stop?
-                prog.update(len(json[self.kind]['nodes']))
+                prog.update(len(json[self.activity]['nodes']))
                 if not pageInfo['hasNextPage']:
                     break
 
@@ -323,7 +335,7 @@ class GitLabGraphQlQuery:
         data['labels'] = data['labels'].map(
             lambda a: [edge['node']['title'] for edge in a['edges']]
         )
-        data['kind'] = self.kind
+        data['activity'] = self.activity
 
         # URLs of form https://gitlab.com/org/grp1/grp2/repo/-/issues/[\d+]
         # We split at '/-/' and take top group as org and rest as repo path
@@ -332,9 +344,12 @@ class GitLabGraphQlQuery:
             lambda a: '/'.join(a.split('/-/')[0].split('/')[4:])
         )
 
-        if self.kind == 'mergeRequests':
+        # Get unique participants
+        data['participants'] = data['participants'].map(self.get_unique_users)
+
+        if self.activity == 'mergeRequests':
             data['mergeUser'] = data['mergeUser'].map(self.get_user)
             data['emojis'] = data['awardEmoji'].map(self.get_emoji_count)
-            data['reviewers'] = data['reviewers'].map(self.get_unique_contributors)
-            data['committers'] = data['committers'].map(self.get_unique_contributors)
+            data['reviewers'] = data['reviewers'].map(self.get_unique_users)
+            data['committers'] = data['committers'].map(self.get_unique_users)
         return data

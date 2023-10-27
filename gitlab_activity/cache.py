@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from gitlab_activity import ALLOWED_KINDS
+from gitlab_activity import ALLOWED_ACTIVITIES
 from gitlab_activity import DEFAULT_PATH_CACHE
 from gitlab_activity.utils import log
 
@@ -36,7 +36,7 @@ def cache_data(query_data, path_cache):
         path_repo_cache.mkdir(parents=True, exist_ok=True)
 
         # MRs cache
-        data_mrs = query_data.query("kind == 'mergeRequests'")
+        data_mrs = query_data.query("activity == 'mergeRequests'")
         path_mr_cache = path_repo_cache.joinpath('mergeRequests.csv')
         if path_mr_cache.exists():
             mrs_cache = pd.read_csv(path_mr_cache)
@@ -48,7 +48,7 @@ def cache_data(query_data, path_cache):
         mrs_cache.to_csv(path_mr_cache, index=False)
 
         # Issues cache
-        data_issues = query_data.query("kind == 'issues'")
+        data_issues = query_data.query("activity == 'issues'")
         path_issues_cache = path_repo_cache.joinpath('issues.csv')
         if path_issues_cache.exists():
             issues_cache = pd.read_csv(path_issues_cache)
@@ -60,14 +60,14 @@ def cache_data(query_data, path_cache):
         issues_cache.to_csv(path_issues_cache, index=False)
 
 
-def load_from_cache(target, kind, path_cache=None):
+def load_from_cache(target, activity, path_cache=None):
     """Load data from cache
 
     Parameters
     ----------
     target : str
         The GitLab organization/repo for which you want to grab recent issues/MRs.
-    kind : str
+    activity : str
         Type of activity data to load from cache
     path_cache : str | None
         If None default cache path will be used.
@@ -81,15 +81,15 @@ def load_from_cache(target, kind, path_cache=None):
     Raises
     ------
     RuntimeError
-        When kind is not in ALLOWED_KINDS or target is not valid
+        When activity is not in ALLOWED_ACTIVITIES or target is not valid
     FileNotFoundError
         When path_cache file does not exist
     """
     # Checks for correctness and existence of cache
     if path_cache is None:
         path_cache = DEFAULT_PATH_CACHE
-    if kind not in ALLOWED_KINDS:
-        msg = f'Kind must be one of {ALLOWED_KINDS}, not {kind}'
+    if activity not in ALLOWED_ACTIVITIES:
+        msg = f'Activity must be one of {ALLOWED_ACTIVITIES}, not {activity}'
         raise RuntimeError(msg)
     path_cache = Path(path_cache)
 
@@ -125,7 +125,7 @@ def load_from_cache(target, kind, path_cache=None):
         if not path_cache_repo.exists():
             msg = f'Could not find cache for org/repo: {org}/{repo}'
             raise FileNotFoundError(msg)
-        path_csv = path_cache_repo.joinpath(f'{kind}.csv')
+        path_csv = path_cache_repo.joinpath(f'{activity}.csv')
         data.append(pd.read_csv(path_csv))
     return pd.concat(data)
 
@@ -139,7 +139,7 @@ def get_cache_stats(path_cache=None):
     for org in path_cache.glob('*'):
         for repo in org.glob('*'):
             for ipath in repo.glob('*'):
-                kind = ipath.with_suffix('').name
+                activity = ipath.with_suffix('').name
                 idata = pd.read_csv(ipath)
                 mindate = idata['createdAt'].min()
                 maxdate = idata['createdAt'].max()
@@ -148,7 +148,7 @@ def get_cache_stats(path_cache=None):
                     {
                         'org': org.name,
                         'repo': repo.name,
-                        'kind': kind,
+                        'activity': activity,
                         'start': mindate,
                         'end': maxdate,
                         'nrecords': nrecords,
