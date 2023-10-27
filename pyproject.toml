@@ -180,7 +180,7 @@ output = "coverage.xml"
 # Changelog file path
 output = "CHANGELOG.md"
 # Only query for merge requests
-kind = "mergeRequests"
+activity = ["mergeRequests"]
 # Append to existing file
 append = true
 # Add list of contributors to each entry
@@ -188,32 +188,38 @@ include_contributors_list = true
 # Use heading level of 2 to account for top level heading
 heading_level = 2
 
-[tool.gitlab-activity.repository]
-# Labels used in the repository
-# Dicts must be inline for linters not to complain
-labels_metadata = [
-  { labels = [ "feature", "feat", "new" ], pre = [ "NEW", "FEAT", "FEATURE" ], description = "New features added" },
-
-  { labels = [ "enhancement", "enhancements" ], pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], description = "Enhancements made" },
-
-  { labels = [ "bug", "bugfix", "bugs" ], pre = [ "FIX", "BUG" ], description = "Bugs fixed" },
-
-  { labels = [ "packaging", "build" ], pre = [ "BUILD", ], description = "Build changes" },
-
-  { labels = [ "ci" ], pre = [ "CI", ], description = "CI changes" },
-
-  { labels = [ "maintenance", "maint" ], pre = [ "MAINT", "MNT" ], description = "Maintenance and upkeep improvements" },
-
-  { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
-  
-  { labels = [ "deprecation", "deprecate" ], pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], description = "Deprecated features" },
-]
-
+[tool.gitlab-activity.activity]
 # List of bot_users
 bot_users = [
   "codecov",
   "codeco-io",
   "dependabot",
   "gitlab-bot",
-  "pre-commit-ci",
+  "ghost1",
+]
+
+[tool.gitlab-activity.activity.groups]
+# Labels used in issues
+# Dicts must be inline for linters not to complain
+issues = [
+  { labels = [ "feature", "feat", "new" ], pre = [ "NEW", "FEAT", "FEATURE" ], description = "New features added" },
+  { labels = [ "enhancement", "enhancements" ], pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], description = "Enhancements made" },
+  { labels = [ "bug", "bugfix", "bugs" ], pre = [ "FIX", "BUG" ], description = "Bugs fixed" },
+  { labels = [ "packaging", "build" ], pre = [ "BUILD", ], description = "Build changes" },
+  { labels = [ "ci" ], pre = [ "CI", ], description = "CI changes" },
+  { labels = [ "maintenance", "maint" ], pre = [ "MAINT", "MNT" ], description = "Maintenance and upkeep improvements" },
+  { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
+  { labels = [ "deprecation", "deprecate" ], pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], description = "Deprecated features" },
+]
+# Labels used in mrs
+# Dicts must be inline for linters not to complain
+mrs = [
+  { labels = [ "feature", "feat", "new" ], pre = [ "NEW", "FEAT", "FEATURE" ], description = "New features added" },
+  { labels = [ "enhancement", "enhancements" ], pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], description = "Enhancements made" },
+  { labels = [ "bug", "bugfix", "bugs" ], pre = [ "FIX", "BUG" ], description = "Bugs fixed" },
+  { labels = [ "packaging", "build" ], pre = [ "BUILD", ], description = "Build changes" },
+  { labels = [ "ci" ], pre = [ "CI", ], description = "CI changes" },
+  { labels = [ "maintenance", "maint" ], pre = [ "MAINT", "MNT" ], description = "Maintenance and upkeep improvements" },
+  { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
+  { labels = [ "deprecation", "deprecate" ], pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], description = "Deprecated features" },
 ]

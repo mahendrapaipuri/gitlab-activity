@@ -4,18 +4,19 @@ from pathlib import Path
 import click
 
 from gitlab_activity import DEFAULT_BOT_USERS
-from gitlab_activity import DEFAULT_LABELS_METADATA
+from gitlab_activity import DEFAULT_GROUPS
 from gitlab_activity import START_MARKER
 from gitlab_activity.git import get_remote_ref
 from gitlab_activity.git import git_installed_check
 from gitlab_activity.lib import generate_activity_md
 from gitlab_activity.lib import generate_all_activity_md
 from gitlab_activity.lib import generate_changelog
+from gitlab_activity.utils import ActivityParamType
 from gitlab_activity.utils import get_auth_token
 from gitlab_activity.utils import log
 from gitlab_activity.utils import parse_target
+from gitlab_activity.utils import print_config
 from gitlab_activity.utils import read_config
-from gitlab_activity.utils import RepoDataParamType
 
 # Default config file location
 DEFAULT_CFG = Path(Path.cwd()) / '.gitlab-activity.toml'
@@ -28,7 +29,7 @@ def configure(ctx, _, filename):
     # Update the default ctx with values from config options section
     ctx.default_map = config.get('options', {})
     # Populate "hidden" options from repository section
-    ctx.default_map.update(config.get('repository', {}))
+    ctx.default_map.update(config.get('activity', {}))
 
 
 @click.group(invoke_without_command=True)
@@ -44,7 +45,7 @@ def configure(ctx, _, filename):
     flags can be passed using the config file. In addition this file can be used
     to define the labels and bot users that repo/org uses.
 
-    The labels on MRs will be used to separate them the generated Changelog.
+    The labels on MRs will be used to group them in the generated Changelog.
     List of bot users defined in the config file will be excluded in contributors list
 
     By default, config file .gitlab-activity.yaml in current directory will be
@@ -64,6 +65,8 @@ def configure(ctx, _, filename):
 
     Configuration **will not** be merged from different files. All configuration
     will be loaded from the first file that is found in the current directory.
+
+    If a configuration file is found, the default options will be loaded from the file.
     """,
     show_default=True,
     metavar='<str>',
@@ -72,8 +75,8 @@ def configure(ctx, _, filename):
     '-t',
     '--target',
     type=str,
-    help="""The GitLab organization/repo for which you want to grab recent
-    issues/mergeRequests. Can either be *just* an organization (e.g., `gitlab-org`),
+    help="""The GitLab organization/repo for which you want to grab recent activity
+    [issues/mergeRequests]. Can either be *just* an organization (e.g., `gitlab-org`),
     or a combination organization and repo (e.g., `gitlab-org/gitlab-docs`).
     If the former, all repositories for that org will be used. If the latter,
     only the specified repository will be used.
@@ -85,7 +88,8 @@ def configure(ctx, _, filename):
     the organization or repository is provided when using self hosted instances.
     In absence of domain in the URL, gitlab.com will be used.
 
-    If None, the org/repo will attempt to be inferred from `git remote -v`.""",
+    If None, the org/repo will attempt to be inferred from `git remote -v` in current
+    directory.""",
     default=None,
     show_default=True,
     metavar='<str>',
@@ -94,7 +98,7 @@ def configure(ctx, _, filename):
     '-b',
     '--branch',
     type=str,
-    help="""The branch or reference name to filter pull requests by""",
+    help="""Activity will be filtered by this branch or reference name""",
     default='main',
     show_default=True,
     metavar='<str>',
@@ -103,7 +107,7 @@ def configure(ctx, _, filename):
     '-s',
     '--since',
     type=str,
-    help="""Return issues/mergeRequests with activity since this date or git reference.
+    help="""Return activity since this date or git reference.
     Can be any string that is parsed with dateutil.parser.parse.""",
     default=None,
     show_default=True,
@@ -113,9 +117,34 @@ def configure(ctx, _, filename):
     '-u',
     '--until',
     type=str,
-    help="""Return issues/mergeRequests with activity until this date or git reference.
-    Can be any string that is parsed with dateutil.parser.parse. If none, today's
+    help="""Return activity until this date or git reference.
+    Can be any string that is parsed with dateutil.parser.parse. If None, today's
     date will be used.""",
+    default=None,
+    show_default=True,
+    metavar='<str>',
+)
+@click.option(
+    '--activity',
+    multiple=True,
+    help="""Activity to report. Currently issues and mergeRequests are
+    supported.
+
+    This option can be passed multiple times, e.g.,
+
+    gitlab-activity --activity issues --activity mergeRequests
+
+    By default only mergeRequests activity will be returned.""",
+    default=['mergeRequests'],
+    show_default=True,
+    metavar='<str>',
+)
+@click.option(
+    '--auth',
+    type=str,
+    help="""An authentication token for GitLab. If None, then the environment
+    variable `GITLAB_ACCESS_TOKEN` will be tried. If it does not exist
+    then attempt to infer the token from `glab auth status -t`.""",
     default=None,
     show_default=True,
     metavar='<str>',
@@ -138,28 +167,9 @@ def configure(ctx, _, filename):
     <!-- <START NEW CHANGELOG ENTRY> -->
 
     in the existing changelog file. In the absence of this marker an error will be
-    raised.
-    """,
+    raised.""",
     default=False,
     show_default=True,
-)
-@click.option(
-    '--kind',
-    type=str,
-    help="""Return only issues or mergeRequests. If None, both will be returned.""",
-    default=None,
-    show_default=True,
-    metavar='<str>',
-)
-@click.option(
-    '--auth',
-    type=str,
-    help="""An authentication token for GitLab. If None, then the environment
-    variable `GITLAB_ACCESS_TOKEN` will be tried. If it does not exist
-    then attempt to infer the token from `glab auth status -t`.""",
-    default=None,
-    show_default=True,
-    metavar='<str>',
 )
 @click.option(
     '--heading-level',
@@ -171,13 +181,6 @@ def configure(ctx, _, filename):
     default=1,
     show_default=True,
     metavar='<int>',
-)
-@click.option(
-    '--include-issues',
-    is_flag=True,
-    help="""Include Issues in the markdown output""",
-    default=False,
-    show_default=True,
 )
 @click.option(
     '--include-opened',
@@ -218,15 +221,15 @@ def configure(ctx, _, filename):
 )
 # Following options are hidden and can only configured by config file
 @click.option(
-    '--labels-metadata',
-    help="""Metadata of labels""",
-    type=RepoDataParamType,
+    '--groups',
+    help="""Activity groups""",
+    type=ActivityParamType,
     hidden=True,
 )
 @click.option(
     '--bot-users',
     help="""List of bot users""",
-    type=RepoDataParamType,
+    type=ActivityParamType,
     hidden=True,
 )
 def main(**kwargs):
@@ -244,6 +247,7 @@ def main(**kwargs):
             kwargs['local'] = True
         except Exception:
             log('Could not automatically detect target and none was given. Exiting...')
+            print_config(kwargs)
             sys.exit(1)
 
     # Check if auth token is available
@@ -260,6 +264,7 @@ def main(**kwargs):
                 'scopes on the token you create. Alternatively, you may log-in '
                 'via the GitLab CLI (`glab auth login`). Exiting...'
             )
+            print_config(kwargs)
             sys.exit(1)
 
     # Check if output file is specified if --append flag exists
@@ -268,13 +273,17 @@ def main(**kwargs):
             '--append flag is used but no output file specified. '
             'Please use -o/--output to specify an output file. Exting...'
         )
+        print_config(kwargs)
         sys.exit(1)
     elif kwargs['append'] and kwargs['output']:
         changelog_path = Path(kwargs['output']).resolve()
         # If specified file does not exist, exit
         if not Path(changelog_path).exists():
-            log(f'Output file {changelog_path} does not exist. Exiting...')
-            sys.exit(1)
+            log(f'Output file at {changelog_path} does not exist. Creating one...')
+            entry = f"""# Changelog
+{START_MARKER}
+"""
+            Path(changelog_path).write_text(entry, encoding='utf-8')
 
         # Get the existing changelog and run some validation
         changelog = Path(changelog_path).read_text(encoding='utf-8')
@@ -283,6 +292,7 @@ def main(**kwargs):
                 f'Missing insert marker in changelog at {changelog_path}. '
                 f'Please insert a marker {START_MARKER}. Exiting...'
             )
+            print_config(kwargs)
             sys.exit(1)
 
         if changelog.find(START_MARKER) != changelog.rfind(START_MARKER):
@@ -290,6 +300,7 @@ def main(**kwargs):
                 f'More than one insert markers are found in changelog at '
                 f'{changelog_path}. Please remove duplicates. Exiting...'
             )
+            print_config(kwargs)
             sys.exit(1)
 
     # Ensure since is provided if group is set as target
@@ -299,24 +310,24 @@ def main(**kwargs):
             '--since option is required when a group and/or namespace activity is '
             'requested. Exiting...'
         )
+        print_config(kwargs)
         sys.exit(1)
 
-    # Check if labels_metadata and bot_users are provided, If not use a basic one
-    if kwargs['labels_metadata'] is None:
-        kwargs['labels_metadata'] = DEFAULT_LABELS_METADATA
+    # Check if groups and bot_users are provided, If not use a basic one
+    if kwargs['groups'] is None:
+        kwargs['groups'] = DEFAULT_GROUPS
     if kwargs['bot_users'] is None:
         kwargs['bot_users'] = DEFAULT_BOT_USERS
 
     common_kwargs = {
-        'kind': kwargs['kind'],
+        'activity': kwargs['activity'],
         'auth': kwargs['auth'],
-        'include_issues': bool(kwargs['include_issues']),
         'include_opened': bool(kwargs['include_opened']),
         'strip_brackets': bool(kwargs['strip_brackets']),
         'include_contributors_list': bool(kwargs['include_contributors_list']),
         'branch': kwargs['branch'],
         'local': kwargs['local'],
-        'labels_metadata': kwargs['labels_metadata'],
+        'groups': kwargs['groups'],
         'bot_users': kwargs['bot_users'],
         'cached': kwargs['cache'],
     }

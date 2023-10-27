@@ -1,58 +1,106 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Gitlab Activity Metadata",
   "version": "0.1.0",
   "description": "Gitlab Activity configuration metadata",
+  "definitions": {
+    "labelsDef": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pre": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
   "properties": {
     "options": {
       "title": "Overrides for default options",
       "description": "Overrides for cli option names",
       "type": "object",
-      "additionalProperties": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "boolean"
-          },
-          {
-            "type": "number"
-          }
-        ]
-      }
-    },
-    "repository": {
-      "title": "Metadata of the Repository or Group",
-      "description": "Metadata of labels and bot users of repository or group",
-      "type": "object",
-      "additionalProperties": {
-        "labels_metadata": {
+      "properties": {
+        "target": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "since": {
+          "type": "string"
+        },
+        "until": {
+          "type": "string"
+        },
+        "activity": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "labels": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "pre": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "description": {
-                "type": "string"
-              }
-            }
+            "type": "string"
           }
         },
+        "auth": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        },
+        "append": {
+          "type": "boolean"
+        },
+        "heading_level": {
+          "type": "integer"
+        },
+        "include_opened": {
+          "type": "boolean"
+        },
+        "include_contributors_list": {
+          "type": "boolean"
+        },
+        "strip_brackets": {
+          "type": "boolean"
+        },
+        "all": {
+          "type": "boolean"
+        },
+        "cache": {
+          "type": "boolean"
+        }
+      }
+    },
+    "activity": {
+      "title": "Activity metadata of the Repository or Group",
+      "description": "Activity labels and bot users of repository or group",
+      "type": "object",
+      "properties": {
         "bot_users": {
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "groups": {
+          "type": "object",
+          "properties": {
+            "issues": {
+              "$ref": "#/definitions/labelsDef"
+            },
+            "mrs": {
+              "$ref": "#/definitions/labelsDef"
+            }
           }
         }
       }
