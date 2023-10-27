@@ -256,12 +256,32 @@ def get_all_tags(domain, target, targetid, auth):
         msg = f'Failed to get tags for target {target}'
         raise RuntimeError(msg) from None
 
-    # Check if there is atleast one tag
-    if len(response.json()) >= 1:
-        return [
-            (t['name'], t['target'], t['commit']['created_at']) for t in response.json()
-        ]
-    return None
+    # Return None if there are no tags
+    if len(response.json()) == 0:
+        return None
+
+    all_tags = [
+        (t['name'], t['target'], t['commit']['created_at']) for t in response.json()
+    ]
+
+    # Finally add a dummy tag 0.0.0 from start of the repository to get
+    # first tag's activity in the report
+    # For that we need to make another API request to commits endpoint
+    # to get first commit date and hash
+    url = f'https://{domain}/api/v4/projects/{targetid}/repository/commits'
+    # We make a query for commits only until first tag commit which
+    # should give us all commits from start
+    query_params = {'until': all_tags[-1][-1]}
+    try:
+        response = requests.get(url, params=query_params, headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        # Ignore all errors
+        pass
+    else:
+        data = response.json()
+        all_tags += [('0.0.0', data[-1]['id'], data[-1]['committed_date'])]
+    return all_tags
 
 
 def get_latest_tag_remote(domain, target, targetid, auth):
