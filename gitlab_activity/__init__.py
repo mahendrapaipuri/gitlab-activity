@@ -6,13 +6,13 @@ START_MARKER = '<!-- <START NEW CHANGELOG ENTRY> -->'
 END_MARKER = '<!-- <END NEW CHANGELOG ENTRY> -->'
 
 # Supported activity types
-ALLOWED_KINDS = ['issues', 'mergeRequests']
+ALLOWED_ACTIVITIES = ['issues', 'mergeRequests']
 
 # Default path to cache data
 DEFAULT_PATH_CACHE = Path('~/.cache/gitlab-activity-data').expanduser()
 
-# Default labels metadata
-DEFAULT_LABELS_METADATA = [
+# Default groups
+_DEFAULT_GROUPS = [
     {
         'labels': ['feature', 'feat', 'new'],
         'pre': ['NEW', 'FEAT', 'FEATURE'],
@@ -44,6 +44,10 @@ DEFAULT_LABELS_METADATA = [
         'description': 'Deprecated features',
     },
 ]
+DEFAULT_GROUPS = {
+    'issues': _DEFAULT_GROUPS,
+    'mrs': _DEFAULT_GROUPS,
+}
 
 # Default bot users
 DEFAULT_BOT_USERS = [

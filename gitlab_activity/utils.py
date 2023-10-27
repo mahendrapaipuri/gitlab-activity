@@ -9,11 +9,11 @@ from pathlib import Path
 
 import click
 import dateutil.parser
+import jsonschema
 import pytz
 import requests
 import toml
 from importlib_resources import files
-from jsonschema import Draft4Validator as Validator
 
 PYPROJECT = Path('pyproject.toml')
 GITLAB_ACTIVITY = Path('.gitlab-activity.toml')
@@ -30,7 +30,7 @@ class CustomParamType(click.ParamType):
 
     def convert(self, value, param, ctx):
         try:
-            if isinstance(value, list):
+            if isinstance(value, (dict, list)):
                 return value
 
             # First convert to list
@@ -42,11 +42,15 @@ class CustomParamType(click.ParamType):
                 param,
                 ctx,
             )
-        except Exception:
-            self.fail(f'Failed to convert {value!r} into a valid list', param, ctx)
+        except Exception as err:
+            self.fail(
+                f'Failed to convert {value!r} into a valid list due to {err!r}',
+                param,
+                ctx,
+            )
 
 
-RepoDataParamType = CustomParamType()
+ActivityParamType = CustomParamType()
 
 
 def log(*outputs, **kwargs):
@@ -98,9 +102,24 @@ def read_config(path):
                 log(f'Ignoring gitlab-activity configuration from {PACKAGE_JSON}.')
 
     config = config or {}
-    validator = Validator(SCHEMA)
-    validator.validate(config)
+    try:
+        jsonschema.validate(config, schema=SCHEMA)
+    except jsonschema.exceptions.ValidationError as err:
+        log(f'Failed to validate the config file data. Validation error is \n\n{err}')
+        print_config(config)
     return config
+
+
+def print_config(config):
+    """Print gitlab-activity config data when there is an error in CLI
+
+    Parameters
+    ----------
+    config : dict
+        Config data
+    """
+    log('Current gitlab-activty config: \n')
+    log(json.dumps(config, indent=2))
 
 
 def get_auth_token():
@@ -172,10 +191,10 @@ def parse_target(target, auth):
     # Get group/project
     if target.startswith('http'):
         domain = target.split('//')[-1].split('/')[0]
-        target = target.split('//')[-1].split('/')[-1]
+        target = '/'.join(target.split('//')[-1].split('/')[1:])
     elif '@' in target:
         domain = target.split('@')[-1].split(':')[0]
-        target = target.split('@')[-1].split(':')[-1]
+        target = '/'.join(target.split('@')[-1].split(':')[1:])
     elif '.' in target:
         # split target by /
         parts = target.split('/')
