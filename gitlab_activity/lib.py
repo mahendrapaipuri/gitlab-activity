@@ -24,7 +24,6 @@ from gitlab_activity.utils import parse_target
 # Placeholder columns for creating an empty df
 PLACEHOLDER_DF_COLS = [
     'createdAt',
-    'mergedAt',
     'state',
     'contributors',
     'labels',
@@ -82,7 +81,7 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
     if activity and not all(a in ALLOWED_ACTIVITIES for a in activity):
         msg = f'Activity must be one of {ALLOWED_ACTIVITIES}'
         raise RuntimeError(msg)
-    requested_activity = ('mergeRequests') if activity is None else activity
+    requested_activity = ['mergeRequests'] if activity is None else activity
 
     # Query for both opened and closed issues/mergeRequests in this window
     query_data = []
@@ -281,15 +280,6 @@ def update_groups_with_activity_data(groups, data):
         desc = generate_desc_from_label(gtype)
         # Get current group from data type
         group = groups[gtype.split('_')[-1]]
-        # # If groups is None, initialize one
-        # if initialize_groups:
-        #     group = [
-        #         {
-        #             'description': f'All {desc}',
-        #             'labels': ['.*'],
-        #             'pre': [],
-        #         }
-        #     ]
 
         # This container will hold all grouped data for each activity type
         # As groups is nested object, we need to make a deep copy
@@ -512,24 +502,28 @@ def generate_activity_md(
 
     # if filtered df are empty override them with placeholders
     if merge_requests.empty:
-        merge_requests = pd.DataFrame(columns=PLACEHOLDER_DF_COLS)
+        merge_requests = pd.DataFrame(
+            columns=['mergedAt', 'mergeCommitSha', *PLACEHOLDER_DF_COLS]
+        )
     if issues.empty:
-        issues = pd.DataFrame(columns=PLACEHOLDER_DF_COLS)
+        issues = pd.DataFrame(
+            columns=['closedAt', 'mergeRequestsCount', *PLACEHOLDER_DF_COLS]
+        )
 
     # Separate into closed and opened
     until_dt_str = data.until_dt_str  # noqa: F841
     since_dt_str = data.since_dt_str  # noqa: F841
     merged_mrs = merge_requests.query(
-        'mergedAt >= @since_dt_str and mergedAt <= @until_dt_str'
+        'mergedAt > @since_dt_str and mergedAt <= @until_dt_str'
     )
     opened_mrs = merge_requests.query(
-        'createdAt >= @since_dt_str and createdAt <= @until_dt_str'
+        'createdAt > @since_dt_str and createdAt <= @until_dt_str'
     )
     closed_issues = issues.query(
-        'closedAt >= @since_dt_str and closedAt <= @until_dt_str'
+        'closedAt > @since_dt_str and closedAt <= @until_dt_str'
     )
     opened_issues = issues.query(
-        'createdAt >= @since_dt_str and createdAt <= @until_dt_str'
+        'createdAt > @since_dt_str and createdAt <= @until_dt_str'
     )
 
     # Remove the MRs/Issues that from "opened" if they were also closed
@@ -556,7 +550,7 @@ def generate_activity_md(
         )
 
     # Finally include closed and opened issues if asked
-    if 'issues' in activity:
+    if activity is not None and 'issues' in activity:
         # If issues are asked in the report, add contributors of issues as well
         # But add participants of closed issues that successfully merged atleast
         # one MR
@@ -608,11 +602,11 @@ def generate_activity_md(
                     contributor_list = ', '.join(
                         [f'[@{user[0]}]({user[1]})' for user in irowdata.contributors]
                     )
-                    this_md = f"- {ititle} [#{irowdata['reference']}]({irowdata['webUrl']}) ({contributor_list})"  # noqa: E501
+                    this_md = f"- {ititle} [{irowdata['reference']}]({irowdata['webUrl']}) ({contributor_list})"  # noqa: E501
                     items['md'].append(this_md)
 
     # Get functional GitLab references for only projects: any git reference
-    if merged_mrs.size > 0 and not data.since_is_git_ref and target_type == 'project':
+    if target_type == 'project' and merged_mrs.size > 0 and not data.since_is_git_ref:
         since = f'{branch}@{{{data.since_dt:%Y-%m-%d}}}'
         closest_date_start = merged_mrs.loc[
             abs(
@@ -622,10 +616,9 @@ def generate_activity_md(
         ]
         since_ref = closest_date_start['mergeCommitSha']
     else:
-        since = f'{data.since_dt:%Y-%m-%d}'
         since_ref = since
 
-    if merged_mrs.size > 0 and not data.until_is_git_ref and target_type == 'project':
+    if target_type == 'project' and merged_mrs.size > 0 and not data.until_is_git_ref:
         until = f'{branch}@{{{data.until_dt:%Y-%m-%d}}}'
         closest_date_stop = merged_mrs.loc[
             abs(
@@ -635,7 +628,6 @@ def generate_activity_md(
         ]
         until_ref = closest_date_stop['mergeCommitSha']
     else:
-        until = f'{data.until_dt:%Y-%m-%d}'
         until_ref = until
 
     # SHAs for our dates to build the GitLab diff URL
@@ -655,7 +647,7 @@ def generate_activity_md(
             '',
         ]
     # Add full changelog for only projects and do not add it for groups
-    if target_type == 'project' and activity in [None, 'mergeRequests']:
+    if target_type == 'project' and 'mergeRequests' in activity and merged_mrs.size > 0:
         md += [
             f'([Full Changelog]({changelog_url}))',
         ]
@@ -663,6 +655,7 @@ def generate_activity_md(
     for gtype, group_data in grouped_data.items():
         if group_head and any(len(info['md']) > 0 for info in group_data):
             desc = generate_desc_from_label(gtype)
+            md += ['']
             md += [f'{extra_head}## {desc}']
         for info in group_data:
             if len(info['md']) > 0:

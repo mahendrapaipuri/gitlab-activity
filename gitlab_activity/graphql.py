@@ -204,10 +204,23 @@ class GitLabGraphQlQuery:
             self.targets = get_namespace_projects(self.domain, target, auth)
             self.scope = 'project'
 
-        # Form query strings
-        self.search_query = (
-            f'{activity} (createdAfter: \"{since}\", createdBefore: \"{until}\")'
-        )
+        # Different queries for issues and mergeRequests. We need to get created/merged
+        # MRs in time window and created/closed for issues
+        self.search_queries = {
+            'created': f'{self.activity} (createdAfter: \"{since}\", createdBefore: \"{until}\")',  # noqa: E501
+        }
+        if self.activity == 'issues':
+            self.search_queries.update(
+                {
+                    'closed': f'{self.activity} (closedAfter: \"{since}\", closedBefore: \"{until}\")',  # noqa: E501
+                }
+            )
+        elif self.activity == 'mergeRequests':
+            self.search_queries.update(
+                {
+                    'merged': f'{self.activity} (mergedAfter: \"{since}\", mergedBefore: \"{until}\")',  # noqa: E501
+                }
+            )
 
         self.gql_template = GQL_TEMPLATE
         self.display_progress = display_progress
@@ -273,56 +286,60 @@ class GitLabGraphQlQuery:
             # Make query string
             scope_query = f'{self.scope} (fullPath: \"{target}\")'
             break_from_target = False
-            for ipage in range(n_pages):
-                gitlab_search_query = self.search_query[:-1] + f', first: {n_per_page})'
-                if ipage != 0:
-                    gitlab_search_query = (
-                        gitlab_search_query[:-1]
-                        + f', after: "{pageInfo["endCursor"]}")'
+            for search_type, search_query in self.search_queries.items():
+                for ipage in range(n_pages):
+                    gitlab_search_query = search_query[:-1] + f', first: {n_per_page})'
+                    if ipage != 0:
+                        gitlab_search_query = (
+                            gitlab_search_query[:-1]
+                            + f', after: "{pageInfo["endCursor"]}")'
+                        )
+
+                    gql_query = self.gql_template.format(
+                        scope_query=scope_query,
+                        search_query=gitlab_search_query,
+                        search_elements=GQL_ELEMENT_QUERY[self.activity],
                     )
 
-                gql_query = self.gql_template.format(
-                    scope_query=scope_query,
-                    search_query=gitlab_search_query,
-                    search_elements=GQL_ELEMENT_QUERY[self.activity],
-                )
+                    # Parse the response for this pagination
+                    json = self._request(gql_query)['data'][self.scope]
+                    if ipage == 0:
+                        if json[self.activity]['count'] == 0:
+                            log(
+                                f'Found no entries for {search_type} {self.activity} '
+                                f'query on target {target}'
+                            )
+                            break_from_target = True
+                            break
 
-                # Parse the response for this pagination
-                json = self._request(gql_query)['data'][self.scope]
-                if ipage == 0:
-                    if json[self.activity]['count'] == 0:
-                        log(
-                            f'Found no entries for {self.activity} query on target '
-                            f'{target}'
+                        n_pages = int(
+                            np.ceil(json[self.activity]['count'] / n_per_page)
                         )
-                        break_from_target = True
+                        log(
+                            f"Found {json[self.activity]['count']} {search_type} "
+                            f"{self.activity} on target {target}, which will take "
+                            f"{n_pages} pages"
+                        )
+                        prog = tqdm(
+                            total=json[self.activity]['count'],
+                            desc='Downloading',
+                            unit=f' {self.activity}',
+                            disable=n_pages == 1 or not self.display_progress,
+                        )
+
+                    # If there are no entries break from this target
+                    if break_from_target:
                         break
 
-                    n_pages = int(np.ceil(json[self.activity]['count'] / n_per_page))
-                    log(
-                        f"Found {json[self.activity]['count']} items on "
-                        f"target {target}, which will take {n_pages} pages"
-                    )
-                    prog = tqdm(
-                        total=json[self.activity]['count'],
-                        desc='Downloading',
-                        unit=f' {self.activity}',
-                        disable=n_pages == 1 or not self.display_progress,
-                    )
+                    # Add the JSON to the raw data list
+                    self.issues_and_or_mrs.extend(json[self.activity]['nodes'])
+                    pageInfo = json[self.activity]['pageInfo']
+                    self.last_query = gql_query
 
-                # If there are no entries break from this target
-                if break_from_target:
-                    break
-
-                # Add the JSON to the raw data list
-                self.issues_and_or_mrs.extend(json[self.activity]['nodes'])
-                pageInfo = json[self.activity]['pageInfo']
-                self.last_query = gql_query
-
-                # Update progress and should we stop?
-                prog.update(len(json[self.activity]['nodes']))
-                if not pageInfo['hasNextPage']:
-                    break
+                    # Update progress and should we stop?
+                    prog.update(len(json[self.activity]['nodes']))
+                    if not pageInfo['hasNextPage']:
+                        break
 
         # If there are no entries overall return
         if len(self.issues_and_or_mrs) == 0:
