@@ -19,13 +19,9 @@ GQL_ELEMENT_QUERY = {
         createdAt
         updatedAt
         mergedAt
-        mergeUser {
-          username
-          webUrl
-          bot
-        }
         mergeCommitSha
         sourceBranch
+        reference
         sourceProject {
           webUrl
         }
@@ -47,7 +43,6 @@ GQL_ELEMENT_QUERY = {
           webUrl
           bot
         }
-        reference
         awardEmoji (first: 10) {
           edges {
             node {
