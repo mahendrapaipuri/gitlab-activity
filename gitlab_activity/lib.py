@@ -14,10 +14,10 @@ from gitlab_activity import DEFAULT_GROUPS
 from gitlab_activity import END_MARKER
 from gitlab_activity import START_MARKER
 from gitlab_activity.cache import cache_data
-from gitlab_activity.git import get_latest_tag
 from gitlab_activity.graphql import GitLabGraphQlQuery
 from gitlab_activity.utils import get_all_tags
 from gitlab_activity.utils import get_datetime_and_type
+from gitlab_activity.utils import get_latest_tag
 from gitlab_activity.utils import log
 from gitlab_activity.utils import parse_target
 
@@ -121,7 +121,6 @@ def generate_all_activity_md(
     strip_brackets=False,
     include_contributors_list=False,
     branch=None,
-    local=False,
     groups=None,
     bot_users=None,
     cached=False,
@@ -155,8 +154,6 @@ def generate_all_activity_md(
         changelog entries
     branch : str | None, default: None
         The branch or reference name to filter pull requests by.
-    local : bool, default: False
-        If target is a local repository.
     groups : list of dict | None, default: None
         A list of the dict of groups with their metadata to use in generating
         the markdown report.
@@ -227,7 +224,6 @@ def generate_all_activity_md(
             strip_brackets=strip_brackets,
             include_contributors_list=include_contributors_list,
             branch=branch,
-            local=local,
             groups=groups,
             bot_users=bot_users,
             cached=cached,
@@ -348,7 +344,6 @@ def generate_activity_md(
     include_contributors_list=False,
     heading_level=1,
     branch=None,
-    local=False,
     groups=None,
     bot_users=None,
     cached=False,
@@ -390,8 +385,6 @@ def generate_activity_md(
         With heading_level=2 those are increased to h2 and h3, respectively.
     branch : str | None, default: None
         The branch or reference name to filter pull requests by.
-    local : bool, default: False
-        If target is a local repository.
     groups : list of dict | None, default: None
         A list of the dict of groups with their metadata to use in generating
         the markdown report.
@@ -426,10 +419,9 @@ def generate_activity_md(
     """
     domain, target, target_type, targetid = parse_target(target, auth)
 
-    # If no since parameter is given, find the name of the latest release
-    # using the _local_ git repostory
+    # If no since parameter is given, set since to lastest tag
     if since is None:
-        since = get_latest_tag(domain, target, targetid, local, auth)
+        since = get_latest_tag(domain, target, targetid, auth)
 
         # If we failed to get latest_tag raise an exception
         if since is None:
@@ -586,12 +578,15 @@ def generate_activity_md(
     for group_data in grouped_data.values():
         for items in group_data:
             n_orgs = len(items['data']['repo'].unique())
-            for repo, _ in items['data'].groupby('repo'):
+            for repo, repo_data in items['data'].groupby('repo'):
                 if n_orgs > 1:
-                    items['md'].append(f'{extra_head}## {repo}')
+                    # Add an empty line if there isnt one before it
+                    if items['md'] and items['md'][-1]:
+                        items['md'].append('')
+                    items['md'].append(f'{extra_head}### {repo}')
                     items['md'].append('')
 
-                for _, irowdata in items['data'].iterrows():
+                for _, irowdata in repo_data.iterrows():
                     ititle = irowdata['title']
                     if (
                         strip_brackets

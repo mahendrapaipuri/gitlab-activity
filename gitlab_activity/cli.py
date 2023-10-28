@@ -19,7 +19,7 @@ from gitlab_activity.utils import print_config
 from gitlab_activity.utils import read_config
 
 # Default config file location
-DEFAULT_CFG = Path(Path.cwd()) / '.gitlab-activity.toml'
+DEFAULT_CFG = '.gitlab-activity.toml'
 
 
 def configure(ctx, _, filename):
@@ -70,6 +70,13 @@ def configure(ctx, _, filename):
     """,
     show_default=True,
     metavar='<str>',
+)
+@click.option(
+    '--print-config',
+    is_flag=True,
+    help="""Prints current configuration after loading config files to stderr""",
+    default=False,
+    show_default=True,
 )
 @click.option(
     '-t',
@@ -234,17 +241,19 @@ def configure(ctx, _, filename):
 )
 def main(**kwargs):
     """Generate a markdown changelog of GitLab activity within a date window"""
+    if kwargs['print_config']:
+        print_config(kwargs)
+        sys.exit(0)
+
     if not git_installed_check():
         log('git is required to run gitlab-activity. Exiting...')
         sys.exit(1)
 
     # Automatically detect the target from remotes if we haven't had one passed.
-    kwargs['local'] = False
     if not kwargs['target']:
         try:
             ref = get_remote_ref()
             kwargs['target'] = ref
-            kwargs['local'] = True
         except Exception:
             log('Could not automatically detect target and none was given. Exiting...')
             print_config(kwargs)
@@ -326,7 +335,6 @@ def main(**kwargs):
         'strip_brackets': bool(kwargs['strip_brackets']),
         'include_contributors_list': bool(kwargs['include_contributors_list']),
         'branch': kwargs['branch'],
-        'local': kwargs['local'],
         'groups': kwargs['groups'],
         'bot_users': kwargs['bot_users'],
         'cached': kwargs['cache'],

@@ -242,6 +242,56 @@ def parse_target(target, auth):
     return domain, target, ttype, targetid
 
 
+def get_commits(domain, target, targetid, auth, since_dt=None, until_dt=None):
+    """Return commits between since and until
+
+    Parameters
+    ----------
+    domain : str
+        Domain of the target repository
+    target : str
+        Sanitized target after stripping elements like 'http(s)', '.git'
+    targetid : str
+        Target numeric ID used by GitLab
+    auth : str
+        An authentication token for GitLab.
+    since_dt : str | default = None
+        Return commits since this datetime.
+    until_dt : str | default = None
+        Return commits until this datetime
+
+    Returns
+    -------
+    list of str | None
+        List of tags or None
+    """
+    headers = _get_headers(auth)
+    url = f'https://{domain}/api/v4/projects/{targetid}/repository/commits'
+
+    # Make query params
+    query_params = {}
+    if since_dt is not None:
+        query_params.update({'since': since_dt})
+    if until_dt is not None:
+        query_params.update({'until': until_dt})
+    try:
+        response = requests.get(url, params=query_params, headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        # Ignore all errors
+        log(f'Failed to get commits for the target {target}')
+        return None
+    else:
+        data = response.json()
+        if len(data) < 1:
+            log(
+                f'No commits found between {since_dt} and {until_dt} '
+                f'for the target {target}'
+            )
+            return None
+        return data
+
+
 def get_all_tags(domain, target, targetid, auth):
     """Return all tags of the repository
 
@@ -258,8 +308,8 @@ def get_all_tags(domain, target, targetid, auth):
 
     Returns
     -------
-    list of str | None
-        List of tags or None
+    list of str
+        List of tags
     """
     headers = _get_headers(auth)
     # Could not find GraphQL query to get list of tags of project
@@ -271,9 +321,9 @@ def get_all_tags(domain, target, targetid, auth):
         msg = f'Failed to get tags for target {target}'
         raise RuntimeError(msg) from None
 
-    # Return None if there are no tags
+    # Return [] if there are no tags
     if len(response.json()) == 0:
-        return None
+        return []
 
     all_tags = [
         (t['name'], t['target'], t['commit']['created_at']) for t in response.json()
@@ -283,24 +333,17 @@ def get_all_tags(domain, target, targetid, auth):
     # first tag's activity in the report
     # For that we need to make another API request to commits endpoint
     # to get first commit date and hash
-    url = f'https://{domain}/api/v4/projects/{targetid}/repository/commits'
+    #
     # We make a query for commits only until first tag commit which
     # should give us all commits from start
-    query_params = {'until': all_tags[-1][-1]}
-    try:
-        response = requests.get(url, params=query_params, headers=headers)
-        response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        # Ignore all errors
-        pass
-    else:
-        data = response.json()
-        all_tags += [('0.0.0', data[-1]['id'], data[-1]['committed_date'])]
+    commits = get_commits(domain, target, targetid, auth, until_dt=all_tags[-1][-1])
+    if commits is not None:
+        all_tags += [('0.0.0', commits[-1]['id'], commits[-1]['committed_date'])]
     return all_tags
 
 
-def get_latest_tag_remote(domain, target, targetid, auth):
-    """Return latest tag of a remote target via API call
+def get_latest_tag(domain, target, targetid, auth):
+    """Return latest tag of a target via API call
 
     Parameters
     ----------
@@ -319,8 +362,8 @@ def get_latest_tag_remote(domain, target, targetid, auth):
         Latest tag or None
     """
     tags = get_all_tags(domain, target, targetid, auth)
-    if tags is not None:
-        return tags[0][0]
+    if tags:
+        return tags[0][1]
     log(f'No tags found for the target {target}')
     return None
 
