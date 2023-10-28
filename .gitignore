@@ -106,3 +106,7 @@ venv.bak/
 
 # Docs tmp files
 docs/tags_list.txt
+
+# All node and npm related stuff
+**/node_modules
+**/.yarn

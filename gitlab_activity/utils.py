@@ -123,15 +123,30 @@ def print_config(config):
 
 
 def get_auth_token():
-    """Returns auth token from GITLAB_ACCESS_TOKEN env var or glab auth status -t cmd"""
+    """Returns auth token.
+
+    The auth token retrieval process is as follows:
+
+    - First env var `GITLAB_ACCESS_TOKEN` is check.
+    - If there is no token yet, we look into `CI_JOB_TOKEN` that is available in CI jobs
+    - If it fails in previous two attempts, we try to get it from
+     `glab auth status -t` cmd
+
+    Returns
+    -------
+
+    token : str
+        Auth token
+    """
     token = None
-    if 'GITLAB_ACCESS_TOKEN' in os.environ:
+    if os.environ.get('GITLAB_ACCESS_TOKEN') is not None:
         # Access token is stored in a local environment variable so just use this
-        log(
-            'Using GLAB access token stored in `GITLAB_ACCESS_TOKEN`.',
-            file=sys.stderr,
-        )
+        log('Using GitLab access token stored in GITLAB_ACCESS_TOKEN.')
         token = os.environ.get('GITLAB_ACCESS_TOKEN')
+    elif os.environ.get('CI_JOB_TOKEN') is not None:
+        # Attempt to use CI_JOB_TOKEN which is available in CI jobs
+        log('Using GitLab access token stored in CI_JOB_TOKEN.')
+        token = os.environ.get('CI_JOB_TOKEN')
     else:
         # Attempt to use the gh cli if installed
         try:
