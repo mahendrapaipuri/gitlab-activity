@@ -89,7 +89,7 @@ def load_from_cache(target, activity, path_cache=None):
     if path_cache is None:
         path_cache = DEFAULT_PATH_CACHE
     if activity not in ALLOWED_ACTIVITIES:
-        msg = f'Activity must be one of {ALLOWED_ACTIVITIES}, not {activity}'
+        msg = f'Activity must be one of {",".join(ALLOWED_ACTIVITIES)}, not {activity}'
         raise RuntimeError(msg)
     path_cache = Path(path_cache)
 
@@ -101,9 +101,6 @@ def load_from_cache(target, activity, path_cache=None):
     elif len(parts) > 1:
         org = parts[0]
         repo = '/'.join(parts[1:])
-    else:
-        msg = f'Target must be of form org/repo, got: {target}'
-        raise RuntimeError(msg)
 
     path_cache_org = path_cache.joinpath(org)
     if not path_cache_org.exists():
@@ -135,6 +132,7 @@ def get_cache_stats(path_cache=None):
     if path_cache is None:
         path_cache = DEFAULT_PATH_CACHE
 
+    path_cache = Path(path_cache)
     out_data = []
     for org in path_cache.glob('*'):
         for repo in org.glob('*'):
@@ -155,3 +153,9 @@ def get_cache_stats(path_cache=None):
                     }
                 )
     return pd.DataFrame(out_data)
+
+
+# if __name__ == "__main__":
+#     # query_data = pd.read_pickle('tests/resources/data/repo_data.pkl')
+#     # cache_data(query_data, True)
+#     print(get_cache_stats().query('activity == "issues"').iloc[0]['nrecords'])
