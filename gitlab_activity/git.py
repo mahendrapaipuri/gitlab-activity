@@ -1,9 +1,6 @@
 """Git related functions for gitlab-activity"""
 import subprocess
 
-from gitlab_activity.utils import get_latest_tag_remote
-from gitlab_activity.utils import log
-
 
 def git_installed_check():
     """Return True if git is installed else False"""
@@ -11,7 +8,7 @@ def git_installed_check():
         subprocess.check_call(
             ['git', '--help'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError:  # pragma: no cover
         return False
     return True
 
@@ -46,19 +43,3 @@ def get_remote_ref():
         'current directory is not a git repository'
     )
     raise ValueError(msg)
-
-
-def get_latest_tag(domain, target, targetid, local, auth):
-    """Return the latest tag name for a given repository or None."""
-    # If it is local repo, run git command to get all tags
-    if local:
-        try:
-            out = subprocess.run(
-                ['git', 'describe', '--tags'], check=True, stdout=subprocess.PIPE
-            )
-        except subprocess.CalledProcessError:
-            log(f'No tags found for the target {target}')
-            return None
-        else:
-            return out.stdout.decode().rsplit("-", 2)[0]
-    return get_latest_tag_remote(domain, target, targetid, auth)
