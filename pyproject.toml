@@ -130,6 +130,7 @@ addopts = [
     "--verbose",
     "--color=yes",
     "--cov-report=xml",
+    "--cov-report=term",
     "--cov=gitlab_activity",
     "--cov-branch",
 ]
