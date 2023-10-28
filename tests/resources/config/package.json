@@ -1,0 +1,14 @@
+{
+    "gitlab-activity": {
+        "options": {
+            "output": "PACKAGE.md",
+            "activity": [
+                "mergeRequests",
+                "issues"
+            ],
+            "append": true,
+            "include_contributors_list": true,
+            "heading_level": 2
+        }
+    }
+} 

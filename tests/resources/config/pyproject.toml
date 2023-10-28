@@ -1,0 +1,11 @@
+[tool.gitlab-activity.options]
+# Changelog file path
+output = "PYPROJECT.md"
+# Only query for merge requests
+activity = ["mergeRequests", "issues"]
+# Append to existing file
+append = true
+# Add list of contributors to each entry
+include_contributors_list = true
+# Use heading level of 2 to account for top level heading
+heading_level = 2
