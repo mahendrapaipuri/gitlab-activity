@@ -13,6 +13,8 @@
 
 ## Bugs fixed
 
+### jupyter/jupyter-jeanzay-spawner
+
 - Relax sanity checks on num GPUs [!38](https://gitlab.com/idris-cnrs/jupyter/jupyter-jeanzay-spawner/-/merge_requests/38) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 - Use a default internal_domain_name [!36](https://gitlab.com/idris-cnrs/jupyter/jupyter-jeanzay-spawner/-/merge_requests/36) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 
