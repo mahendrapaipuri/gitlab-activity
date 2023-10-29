@@ -115,8 +115,9 @@ def read_config(path):
     try:
         jsonschema.validate(config, schema=SCHEMA)
     except jsonschema.exceptions.ValidationError as err:
-        log(f'Failed to validate the config file data. Validation error is \n\n{err}')
         print_config(config)
+        msg = f'Failed to validate the config file data. Validation error is \n\n{err}'
+        raise RuntimeError(msg) from None
     return config
 
 
@@ -178,6 +179,37 @@ def get_auth_token():
     return token
 
 
+def sanitize_target(target):
+    """Sanitize target and returns domain and target"""
+    # Always use default domain as gitlab.com
+    domain = 'gitlab.com'
+
+    # Get group/project
+    if target.startswith('http'):
+        domain = target.split('//')[-1].split('/')[0]
+        target = '/'.join(target.split('//')[-1].split('/')[1:])
+    elif '@' in target:
+        domain = target.split('@')[-1].split(':')[0]
+        target = '/'.join(target.split('@')[-1].split(':')[1:])
+    elif '.' in target:
+        # split target by /
+        parts = target.split('/')
+        for p in parts:
+            if '.' in p:
+                domain = p
+                break
+        target = target.split(domain)[-1].strip('/')
+
+    # If domain has @ and/or : strip them too
+    if '@' in domain:
+        domain = domain.split('@')[-1]
+
+    # Strip .git if exists
+    if target.endswith('.git'):
+        target = target.rsplit('.git', 1)[0]
+    return domain, target
+
+
 def parse_target(target, auth):
     """Parses target based on input such as:
 
@@ -212,28 +244,7 @@ def parse_target(target, auth):
     targetid : str
         Target numeric ID used by GitLab
     """
-    # Always use default domain as gitlab.com
-    domain = 'gitlab.com'
-
-    # Get group/project
-    if target.startswith('http'):
-        domain = target.split('//')[-1].split('/')[0]
-        target = '/'.join(target.split('//')[-1].split('/')[1:])
-    elif '@' in target:
-        domain = target.split('@')[-1].split(':')[0]
-        target = '/'.join(target.split('@')[-1].split(':')[1:])
-    elif '.' in target:
-        # split target by /
-        parts = target.split('/')
-        for p in parts:
-            if '.' in p:
-                domain = p
-                break
-        target = target.split(domain)[-1].strip('/')
-
-    # Strip .git if exists
-    if target.endswith('.git'):
-        target = target.rsplit('.git', 1)[0]
+    domain, target = sanitize_target(target)
 
     # Split by group and project
     #
