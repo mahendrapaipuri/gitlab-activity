@@ -226,6 +226,28 @@ def test_cli_config_files(tmpdir, file):
     )
 
 
+def test_cli_config_files_precendence(tmpdir):
+    """Test if correct both pyproject.toml and package.json are there, config from
+    pyproject.toml is loaded"""
+    path_tmp = Path(tmpdir)
+    config_path = CONFIG_PATH.parent
+
+    # Copy config data to tmp dir
+    for file in ['pyproject.toml', 'package.json']:
+        src = config_path.joinpath(f'{file}')
+        dst = path_tmp.joinpath(f'{file}')
+        shutil.copyfile(src, dst)
+
+    # Invoke cmd
+    cmd = f'gitlab-activity -t gitlab-org/gitlab-docs --print-config'
+    completed = run(cmd.split(), check=True, capture_output=True, cwd=tmpdir)
+
+    assert (
+        f'Ignoring gitlab-activity configuration from package.json'
+        in completed.stderr.decode()
+    )
+
+
 def test_cli_append_output_create_file(tmpdir):
     """Test if we create a file when --append and --output are used together"""
     path_tmp = Path(tmpdir)
@@ -284,5 +306,18 @@ def test_cli_raise_exception_when_target_is_unknown():
     assert completed.returncode == 1
     assert (
         f'RuntimeError: Cannot identify if the target {REPO} is group/project/namespace'
+        in completed.stderr.decode()
+    )
+
+
+def test_cli_errors_when_since_not_given_for_group():
+    """Test if CLI exits with returncode 1 when group target is given without since"""
+    # Invoke cmd
+    cmd = f'gitlab-activity -c {CONFIG_PATH} -t gitlab-org'
+    completed = run(cmd.split(), capture_output=True)
+
+    assert completed.returncode == 1
+    assert (
+        f'--since option is required when a group and/or namespace activity'
         in completed.stderr.decode()
     )
