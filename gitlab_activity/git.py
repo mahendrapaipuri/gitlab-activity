@@ -27,19 +27,23 @@ def get_remote_ref():
     ValueError
         When no remote origin found or current folder is not git repository
     """
-    out = subprocess.run(['git', 'remote', '-v'], check=True, stdout=subprocess.PIPE)
-    remotes = out.stdout.decode().split('\n')
-    remotes = {
-        remote.split('\t')[0]: remote.split('\t')[1].split()[0]
-        for remote in remotes
-        if remote
-    }
-    if 'upstream' in remotes:
-        return remotes['upstream']
-    elif 'origin' in remotes:  # noqa: RET505
-        return remotes['origin']
-    msg = (
-        'No remote/upstream origin found on local repository or '
-        'current directory is not a git repository'
-    )
-    raise ValueError(msg)
+    try:
+        out = subprocess.run(
+            ['git', 'remote', '-v'], check=True, stdout=subprocess.PIPE
+        )
+        remotes = out.stdout.decode().split('\n')
+        remotes = {
+            remote.split('\t')[0]: remote.split('\t')[1].split()[0]
+            for remote in remotes
+            if remote
+        }
+        if 'upstream' in remotes:
+            return remotes['upstream']
+        elif 'origin' in remotes:  # noqa: RET505
+            return remotes['origin']
+    except subprocess.CalledProcessError:
+        msg = (
+            'No remote/upstream origin found on local repository or '
+            'current directory is not a git repository'
+        )
+        raise ValueError(msg) from None

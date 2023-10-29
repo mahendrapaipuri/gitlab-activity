@@ -8,6 +8,7 @@
       "type": "array",
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "properties": {
           "labels": {
             "type": "array",
@@ -33,6 +34,7 @@
       "title": "Overrides for default options",
       "description": "Overrides for cli option names",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "target": {
           "type": "string"
@@ -85,6 +87,7 @@
       "title": "Activity metadata of the Repository or Group",
       "description": "Activity labels and bot users of repository or group",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "bot_users": {
           "type": "array",
@@ -94,6 +97,7 @@
         },
         "categories": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "issues": {
               "$ref": "#/definitions/labelsDef"
