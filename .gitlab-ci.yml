@@ -1,0 +1,56 @@
+image: python:3.12-bullseye
+
+stages:
+  - pretest
+  - build
+  - test
+  - release
+
+# # Create an anchor to setup node
+# .setup_node:
+#    before_script:
+#     - export PATH=/home/testuser/.local/bin:$PATH
+#     - pip install -U pip
+#     # Install nodejs
+#     - wget https://nodejs.org/dist/v18.12.1/node-v18.12.1-linux-x64.tar.xz
+#     - tar -xvf node-v18.12.1-linux-x64.tar.xz
+#     - mv node-v18.12.1-linux-x64 /home/testuser/nodejs
+#     - rm -rf node-v18.12.1-linux-x64.tar.xz
+#     - export PATH=/home/testuser/nodejs/bin:$PATH
+#     - npm --version
+
+pre-commit:
+  stage: pretest
+  script:
+    - mkdir -p build/reports
+    - pip install pre-commit
+    - pre-commit install
+    - pre-commit run --all-files
+  artifacts:
+    paths:
+      - build/reports/
+    expire_in: 1 day
+
+build-test:
+  stage: build
+  script:
+    - pip install .
+  artifacts:
+    paths:
+      - build/reports/
+    expire_in: 1 day
+
+tests:
+  stage: test
+  script:
+    - pip install '.[dev]'
+    - pytest
+    # Codecov specific stuff
+    - curl -Os https://uploader.codecov.io/latest/linux/codecov
+    - chmod +x codecov
+    - ./codecov -t $CODECOV_TOKEN
+  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)%/'
+  artifacts:
+    paths:
+      - build/reports/
+    expire_in: 1 day
