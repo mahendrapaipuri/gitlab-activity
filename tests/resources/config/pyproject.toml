@@ -1,8 +1,9 @@
+# Test config for checking if pyproject.toml is taken into account
 [tool.gitlab-activity.options]
 # Changelog file path
 output = "PYPROJECT.md"
 # Only query for merge requests
-activity = ["mergeRequests", "issues"]
+activity = ["merge_requests", "issues"]
 # Append to existing file
 append = true
 # Add list of contributors to each entry

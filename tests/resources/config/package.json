@@ -3,7 +3,7 @@
         "options": {
             "output": "PACKAGE.md",
             "activity": [
-                "mergeRequests",
+                "merge_requests",
                 "issues"
             ],
             "append": true,
