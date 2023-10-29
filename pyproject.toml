@@ -36,6 +36,7 @@ dependencies = [
     "python-dateutil",
     "requests",
     "tqdm",
+    "jsonschema"
 ]
 dynamic = ["version"]
 
