@@ -65,8 +65,10 @@ The easiest way to use `gitlab-activity` to generate activity markdown is to use
 the command-line interface. It takes the following form:
 
 ```
-gitlab-activity -t [<org>/<repo>] --since <date or ref> --until <date or ref>
+gitlab-activity -t [<group>/<repo>]
 ```
+
+This will output a markdown with MRs activity since last tag.
 
 ## Configuration
 

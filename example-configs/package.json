@@ -1,0 +1,100 @@
+{
+  "gitlab-activity": {
+    "options": {
+      "target": "gitlab-org/gitlab-docs",
+      "branch": "main",
+      "output": "CHANGELOG.md",
+      "activity": [
+        "merge_requests",
+        "issues"
+      ],
+      "append": true,
+      "include_contributors_list": true
+    },
+    "activity": {
+      "bot_users": [
+        "codecov",
+        "gitlab-bot",
+        "ghost1"
+      ],
+      "categories": {
+        "issues": [
+          {
+            "labels": [
+              "feature",
+              "feat",
+              "new"
+            ],
+            "pre": [
+              "NEW",
+              "FEAT"
+            ],
+            "description": "New features added"
+          },
+          {
+            "labels": [
+              "enhancement",
+              "enhancements"
+            ],
+            "pre": [
+              "ENHANCEMENT",
+              "IMPROVE",
+              "IMP"
+            ],
+            "description": "Enhancements made"
+          },
+          {
+            "labels": [
+              "bug",
+              "bugfix",
+              "bugs"
+            ],
+            "pre": [
+              "FIX",
+              "BUG"
+            ],
+            "description": "Bugs fixed"
+          }
+        ],
+        "merge_requests": [
+          {
+            "labels": [
+              "feature",
+              "feat",
+              "new"
+            ],
+            "pre": [
+              "NEW",
+              "FEAT"
+            ],
+            "description": "New features added"
+          },
+          {
+            "labels": [
+              "enhancement",
+              "enhancements"
+            ],
+            "pre": [
+              "ENHANCEMENT",
+              "IMPROVE",
+              "IMP"
+            ],
+            "description": "Enhancements made"
+          },
+          {
+            "labels": [
+              "bug",
+              "bugfix",
+              "bugs"
+            ],
+            "pre": [
+              "FIX",
+              "BUG"
+            ],
+            "description": "Bugs fixed"
+          }
+        ]
+      }
+    }
+  }
+}
