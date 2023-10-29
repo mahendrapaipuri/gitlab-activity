@@ -1,4 +1,4 @@
-"""Use the GraphQL api to grab issues/MRs that match a query."""
+"""Use the GraphQL api to grab issues/MRs that match a query"""
 import copy
 import datetime
 import os
@@ -10,7 +10,7 @@ import pandas as pd
 import pytz
 
 from gitlab_activity import ALLOWED_ACTIVITIES
-from gitlab_activity import DEFAULT_GROUPS
+from gitlab_activity import DEFAULT_CATEGORIES
 from gitlab_activity import END_MARKER
 from gitlab_activity import START_MARKER
 from gitlab_activity.cache import cache_data
@@ -50,8 +50,8 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
         Return issues/MRs with activity until this date or git reference. Can be
         any str that is parsed with dateutil.parser.parse. If none, today's
         date will be used.
-    activity : ["issue", "mergeRequests"], default: None
-        Return only issues or MRs. If None, only mergeRequests will be returned
+    activity : ["issue", "merge_requests"], default: None
+        Return only issues or MRs. If None, only merge_requests will be returned
     auth : str | None, default: None
         An authentication token for GitLab. If None, then the environment
         variable `GITLAB_ACCESS_TOKEN` will be tried. If it does not exist,
@@ -81,9 +81,9 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
     if activity and not all(a in ALLOWED_ACTIVITIES for a in activity):
         msg = f'Activity must be one of {ALLOWED_ACTIVITIES}'
         raise RuntimeError(msg)
-    requested_activity = ['mergeRequests'] if activity is None else activity
+    requested_activity = ['merge_requests'] if activity is None else activity
 
-    # Query for both opened and closed issues/mergeRequests in this window
+    # Query for both opened and closed issues/merge_requests in this window
     query_data = []
     for act in requested_activity:
         log(
@@ -106,7 +106,7 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
     query_data.since_is_git_ref = since_is_git_ref
     query_data.until_is_git_ref = until_is_git_ref
 
-    if cached:
+    if cached and not query_data.empty:
         # Only pass copy of the data
         cache_data(query_data.copy(), cached)
     return query_data
@@ -121,7 +121,7 @@ def generate_all_activity_md(
     strip_brackets=False,
     include_contributors_list=False,
     branch=None,
-    groups=None,
+    categories=None,
     bot_users=None,
     cached=False,
 ):
@@ -139,8 +139,8 @@ def generate_all_activity_md(
     since : str | None
         Return issues/MRs with activity since this date. Can be
         any str that is parsed with dateutil.parser.parse.
-    activity : ["issues", "mergeRequests"] | None, default: None
-        Return only issues or MRs. If None, only mergeRequests will be returned.
+    activity : ["issues", "merge_requests"] | None, default: None
+        Return only issues or MRs. If None, only merge_requests will be returned.
     auth : str | None, default: None
         An authentication token for GitLab. If None, then the environment
         variable `GITLAB_ACCESS_TOKEN` will be tried.
@@ -154,8 +154,8 @@ def generate_all_activity_md(
         changelog entries
     branch : str | None, default: None
         The branch or reference name to filter pull requests by.
-    groups : list of dict | None, default: None
-        A list of the dict of groups with their metadata to use in generating
+    categories : list of dict | None, default: None
+        A list of the dict of categories with their metadata to use in generating
         the markdown report.
 
         Must be one of form:
@@ -168,7 +168,7 @@ def generate_all_activity_md(
 
         The elements in labels and pre can be regex expressions.
 
-        If None, all of the MRs will be placed as one group.
+        If None, all of the MRs will be placed under one category.
     bot_users: list of str | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
         that contain 'bot' will be treated as bot users.
@@ -224,7 +224,7 @@ def generate_all_activity_md(
             strip_brackets=strip_brackets,
             include_contributors_list=include_contributors_list,
             branch=branch,
-            groups=groups,
+            categories=categories,
             bot_users=bot_users,
             cached=cached,
         )
@@ -242,48 +242,55 @@ def generate_all_activity_md(
     return output
 
 
-def generate_desc_from_label(label):
-    """Generate a description from label"""
+def _get_desc_from_label(label):
+    """Get a description from label"""
     desc = f"{' '.join([w.capitalize() for w in label.split('_')])}"
     if 'Mrs' in desc:
         desc = desc.split('Mrs')[0] + 'MRs'
     return desc
 
 
-def update_groups_with_activity_data(groups, data):
-    """Separate the activity data based on groups
+def _get_name_from_label(label):
+    """Get a activity name from label"""
+    name = label.split('_')[-1]
+    if name == 'mrs':
+        return 'merge_requests'
+    return name
+
+
+def categorize_activity_data(categories, data):
+    """Separate the activity data based on categories
 
     Parameters
     ----------
-    groups : list of dict | None
-        A list of the dict of groups with their metadata to use in generating
+    categories : list of dict | None
+        A list of the dict of categories with their metadata to use in generating
         the markdown report.
     data : dict(str, pandas DataFrame)
-        Dict of grouped Issues/MRs munged Dataframe data
+        Dict of categorized Issues/MRs munged Dataframe data
 
     Returns
     -------
-    grouped_data : dict
-        Updated groups with activity data
+    categorized_data : dict
+        Updated categories with activity data
     """
-    grouped_data = {}
-    # If groups is None, initialize one
-    if groups is None:
-        groups = DEFAULT_GROUPS
+    categorized_data = {}
+    # If categories is None, initialize one
+    if categories is None:
+        categories = DEFAULT_CATEGORIES
     # Iterate through dict and separate each activity data based on labels
-    for gtype, group_data in data.items():
+    for activity_type, activity_data in data.items():
         # Data desc
-        desc = generate_desc_from_label(gtype)
-        # Get current group from data type
-        group = groups[gtype.split('_')[-1]]
+        desc = _get_desc_from_label(activity_type)
+        # This container will hold all categorized data for each activity type
+        # As categories is nested object, we need to make a deep copy
+        categorized_activity_data = copy.deepcopy(
+            categories[_get_name_from_label(activity_type)]
+        )
 
-        # This container will hold all grouped data for each activity type
-        # As groups is nested object, we need to make a deep copy
-        group_and_data = copy.deepcopy(group)
-
-        for group in group_and_data:
+        for category in categorized_activity_data:
             # Initialize our labels with empty data
-            group.update(
+            category.update(
                 {
                     'mask': None,
                     'md': [],
@@ -293,44 +300,43 @@ def update_groups_with_activity_data(groups, data):
 
             # Separate out items by their label types
             # First find the MRs/Issues based on label
-            mask = group_data['labels'].map(
-                lambda rlabels, group=group: any(
+            mask = activity_data['labels'].map(
+                lambda rlabels, category=category: any(
                     re.match(re.escape(rf'{label}'), rlabel)
-                    for label in group['labels']
+                    for label in category['labels']
                     for rlabel in rlabels
                 )
             )
 
             # Now find MRs/Issues based on prefix
-            mask_pre = group_data['title'].map(
-                lambda title, group=group: any(
-                    re.match(re.escape(rf'{pre}'), title) for pre in group['pre']
+            mask_pre = activity_data['title'].map(
+                lambda title, category=category: any(
+                    re.match(re.escape(rf'{pre}'), title) for pre in category['pre']
                 )
             )
             mask = mask | mask_pre
 
-            group['data'] = group_data.loc[mask]
-            group['mask'] = mask
+            category['data'] = activity_data.loc[mask]
+            category['mask'] = mask
 
         # All remaining MRs/Issues w/o a label go here
-        all_masks = np.array([~group['mask'].values for group in group_and_data])
-
+        all_masks = np.array(
+            [~category['mask'].values for category in categorized_activity_data]
+        )
         mask_others = all_masks.all(0)
-        others = group_data.loc[mask_others]
-        other_description = f'Unlabelled {desc}'
 
         # Add some optional kinds of MRs/Issues
-        group_and_data.append(
+        categorized_activity_data.append(
             {
-                'description': other_description,
-                'data': others,
+                'description': f'Unlabelled {desc}',
+                'data': activity_data.loc[mask_others],
                 'md': [],
                 'labels': [],
                 'pre': [],
             }
         )
-        grouped_data[gtype] = group_and_data
-    return grouped_data
+        categorized_data[activity_type] = categorized_activity_data
+    return categorized_data
 
 
 def generate_activity_md(
@@ -344,7 +350,7 @@ def generate_activity_md(
     include_contributors_list=False,
     heading_level=1,
     branch=None,
-    groups=None,
+    categories=None,
     bot_users=None,
     cached=False,
 ):
@@ -366,8 +372,8 @@ def generate_activity_md(
         Return issues/MRs with activity until this date or git reference. Can be
         any str that is parsed with dateutil.parser.parse. If none, today's
         date will be used.
-    activity : ["issues", "mergeRequests"], default: None
-        Return only issues or MRs. If None, only mergeRequests will be returned.
+    activity : ["issues", "merge_requests"], default: None
+        Return only issues or MRs. If None, only merge_requests will be returned.
     auth : str | None, default: None
         An authentication token for GitLab. If None, then the environment
         variable `GITLAB_ACCESS_TOKEN` will be tried.
@@ -385,8 +391,8 @@ def generate_activity_md(
         With heading_level=2 those are increased to h2 and h3, respectively.
     branch : str | None, default: None
         The branch or reference name to filter pull requests by.
-    groups : list of dict | None, default: None
-        A list of the dict of groups with their metadata to use in generating
+    categories : list of dict | None, default: None
+        A list of the dict of categories with their metadata to use in generating
         the markdown report.
 
         Must be one of form:
@@ -399,7 +405,7 @@ def generate_activity_md(
 
         The elements in labels and pre can be regex expressions.
 
-        If None, all of the MRs will be placed as one group.
+        If None, all of the MRs will be placed under one category.
     bot_users: list of strs | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
         that contain 'bot' will be treated as bot users.
@@ -452,7 +458,7 @@ def generate_activity_md(
 
         item_contributors = [row.author]
 
-        if row.activity == 'mergeRequests':
+        if row.activity == 'merge_requests':
             # committers and participants are already unique list of user tuples
             # so we can safely append them
             item_contributors += [
@@ -484,12 +490,12 @@ def generate_activity_md(
     # before accessing it
     if branch is not None and 'targetBranch' in data.columns:
         index_names = data[
-            (data['activity'] == 'mergeRequests') & (data['targetBranch'] != branch)
+            (data['activity'] == 'merge_requests') & (data['targetBranch'] != branch)
         ].index
         data.drop(index_names, inplace=True)
 
     # Separate into MRs and issues
-    merge_requests = data.query("activity == 'mergeRequests'")
+    merge_requests = data.query("activity == 'merge_requests'")
     issues = data.query("activity == 'issues'")
 
     # if filtered df are empty override them with placeholders
@@ -528,14 +534,14 @@ def generate_activity_md(
     # Add any contributors to a merged PR to our contributors list
     all_contributors = merged_mrs['contributors'].explode().unique().tolist()
 
-    # Grouped data. Make a dict of grouped data
-    data_cont = {
+    # Container of activity data
+    activity_data = {
         'merged_mrs': merged_mrs,
     }
 
     # Add Opened MRs next if asked
     if include_opened:
-        data_cont.update(
+        activity_data.update(
             {
                 'opened_mrs': opened_mrs,
             }
@@ -552,34 +558,35 @@ def generate_activity_md(
             .unique()
             .tolist()
         )
-        data_cont.update(
+        activity_data.update(
             {
                 'closed_issues': closed_issues,
             }
         )
         if include_opened:
-            data_cont.update(
+            activity_data.update(
                 {
                     'opened_issues': opened_issues,
                 }
             )
 
-    # If more than one group activity is requested we need to add one more depth
+    # If more than one activity type is requested we need to add one more depth
     # to heading to categorize them
-    group_head = ''
-    if len(data_cont.values()) > 1:
-        group_head = '#'
+    activity_head = ''
+    if len(activity_data.values()) > 1:
+        activity_head = '#'
 
-    # Update groups with data
-    grouped_data = update_groups_with_activity_data(groups, data_cont)
+    # Update categories with data
+    categorized_data = categorize_activity_data(categories, activity_data)
 
     # Generate the markdown
     extra_head = '#' * (heading_level - 1)
-    for group_data in grouped_data.values():
-        for items in group_data:
-            n_orgs = len(items['data']['repo'].unique())
+    for cat_data in categorized_data.values():
+        for items in cat_data:
+            # n_orgs = len(items['data']['repo'].unique())
             for repo, repo_data in items['data'].groupby('repo'):
-                if n_orgs > 1:
+                # Add repo name for group and namespace activity
+                if target_type in ['group', 'namespace']:
                     # Add an empty line if there isnt one before it
                     if items['md'] and items['md'][-1]:
                         items['md'].append('')
@@ -602,7 +609,7 @@ def generate_activity_md(
 
     # Get functional GitLab references for only projects: any git reference
     if target_type == 'project' and merged_mrs.size > 0 and not data.since_is_git_ref:
-        since = f'{branch}@{{{data.since_dt:%Y-%m-%d}}}'
+        # since = f'{branch}@{{{data.since_dt:%Y-%m-%d}}}'
         closest_date_start = merged_mrs.loc[
             abs(
                 pd.to_datetime(merged_mrs['mergedAt'], utc=True)
@@ -614,7 +621,7 @@ def generate_activity_md(
         since_ref = since
 
     if target_type == 'project' and merged_mrs.size > 0 and not data.until_is_git_ref:
-        until = f'{branch}@{{{data.until_dt:%Y-%m-%d}}}'
+        # until = f'{branch}@{{{data.until_dt:%Y-%m-%d}}}'
         closest_date_stop = merged_mrs.loc[
             abs(
                 pd.to_datetime(merged_mrs['mergedAt'], utc=True)
@@ -637,25 +644,36 @@ def generate_activity_md(
             '',
         ]
     else:
+        # Use dates for group or namespace activity
+        since_dt = f'{data.since_dt:%Y-%m-%d}'
+        until_dt = f'{data.until_dt:%Y-%m-%d}'
+        # If it is a project, add branch into dates
+        if target_type == 'project':
+            since_dt = f'{branch}@{{{since_dt}}}'
+            until_dt = f'{branch}@{{{until_dt}}}'
         md = [
-            f'{extra_head}# {since}...{until}',
+            f'{extra_head}# {since_dt}...{until_dt}',
             '',
         ]
-    # Add full changelog for only projects and do not add it for groups
-    if target_type == 'project' and 'mergeRequests' in activity and merged_mrs.size > 0:
+    # Add full changelog for only projects and do not add it for categories
+    if (
+        target_type == 'project'
+        and 'merge_requests' in activity
+        and merged_mrs.size > 0
+    ):
         md += [
             f'([Full Changelog]({changelog_url}))',
         ]
 
-    for gtype, group_data in grouped_data.items():
-        if group_head and any(len(info['md']) > 0 for info in group_data):
-            desc = generate_desc_from_label(gtype)
+    for cat, cat_data in categorized_data.items():
+        if activity_head and any(len(info['md']) > 0 for info in cat_data):
+            desc = _get_desc_from_label(cat)
             md += ['']
             md += [f'{extra_head}## {desc}']
-        for info in group_data:
+        for info in cat_data:
             if len(info['md']) > 0:
                 md += ['']
-                md.append(f"{extra_head}{group_head}## {info['description']}")
+                md.append(f"{extra_head}{activity_head}## {info['description']}")
                 md += ['']
                 md += info['md']
 
@@ -670,7 +688,7 @@ def generate_activity_md(
         md += ['']
         # TODO: Add link to docs when available
         md += [
-            f'{extra_head}{group_head}## [Contributors to this release](https://gitlab.com/mahendrapaipuri/gitlab-activity)'
+            f'{extra_head}{activity_head}## [Contributors to this release](https://gitlab.com/mahendrapaipuri/gitlab-activity)'
         ]
         md += ['']
         md += [contributor_md]

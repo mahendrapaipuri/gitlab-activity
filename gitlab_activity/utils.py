@@ -59,6 +59,16 @@ def log(*outputs, **kwargs):
     print(*outputs, **kwargs)  # noqa: T201
 
 
+def convert_snake_case_to_camel_case(input):
+    """Converts snake_case input str to camelCase"""
+    # saving first and rest using split()
+    init, *temp = input.split('_')
+
+    # using map() to get all words other than 1st
+    # and titlecasing them
+    return ''.join([init.lower(), *map(str.title, temp)])
+
+
 def read_config(path):
     """Read the gitlab-activity config data
 
@@ -119,6 +129,8 @@ def print_config(config):
         Config data
     """
     log('Current gitlab-activty config: \n')
+    # Redact auth token
+    config['auth'] = '*****'
     log(json.dumps(config, indent=2))
 
 

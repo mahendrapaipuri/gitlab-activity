@@ -1,10 +1,11 @@
+"""CLI argumenets and main entry point for gitlab-activity"""
 import sys
 from pathlib import Path
 
 import click
 
 from gitlab_activity import DEFAULT_BOT_USERS
-from gitlab_activity import DEFAULT_GROUPS
+from gitlab_activity import DEFAULT_CATEGORIES
 from gitlab_activity import START_MARKER
 from gitlab_activity.git import get_remote_ref
 from gitlab_activity.git import git_installed_check
@@ -45,7 +46,7 @@ def configure(ctx, _, filename):
     flags can be passed using the config file. In addition this file can be used
     to define the labels and bot users that repo/org uses.
 
-    The labels on MRs will be used to group them in the generated Changelog.
+    The labels on MRs will be used to categorize them in the generated Changelog.
     List of bot users defined in the config file will be excluded in contributors list
 
     By default, config file .gitlab-activity.yaml in current directory will be
@@ -83,7 +84,7 @@ def configure(ctx, _, filename):
     '--target',
     type=str,
     help="""The GitLab organization/repo for which you want to grab recent activity
-    [issues/mergeRequests]. Can either be *just* an organization (e.g., `gitlab-org`),
+    [issues/merge_requests]. Can either be *just* an organization (e.g., `gitlab-org`),
     or a combination organization and repo (e.g., `gitlab-org/gitlab-docs`).
     If the former, all repositories for that org will be used. If the latter,
     only the specified repository will be used.
@@ -115,7 +116,8 @@ def configure(ctx, _, filename):
     '--since',
     type=str,
     help="""Return activity since this date or git reference.
-    Can be any string that is parsed with dateutil.parser.parse.""",
+    Can be any string that is parsed with dateutil.parser.parse. If None, activity
+    since latest tag will be reported.""",
     default=None,
     show_default=True,
     metavar='<str>',
@@ -134,15 +136,15 @@ def configure(ctx, _, filename):
 @click.option(
     '--activity',
     multiple=True,
-    help="""Activity to report. Currently issues and mergeRequests are
+    help="""Activity to report. Currently issues and merge_requests are
     supported.
 
     This option can be passed multiple times, e.g.,
 
-    gitlab-activity --activity issues --activity mergeRequests
+    gitlab-activity --activity issues --activity merge_requests
 
-    By default only mergeRequests activity will be returned.""",
-    default=['mergeRequests'],
+    By default only merge_requests activity will be returned.""",
+    default=['merge_requests'],
     show_default=True,
     metavar='<str>',
 )
@@ -228,8 +230,8 @@ def configure(ctx, _, filename):
 )
 # Following options are hidden and can only configured by config file
 @click.option(
-    '--groups',
-    help="""Activity groups""",
+    '--categories',
+    help="""Activity categories""",
     type=ActivityParamType,
     hidden=True,
 )
@@ -241,10 +243,6 @@ def configure(ctx, _, filename):
 )
 def main(**kwargs):
     """Generate a markdown changelog of GitLab activity within a date window"""
-    if kwargs['print_config']:
-        print_config(kwargs)
-        sys.exit(0)
-
     if not git_installed_check():
         log('git is required to run gitlab-activity. Exiting...')
         sys.exit(1)
@@ -322,11 +320,36 @@ def main(**kwargs):
         print_config(kwargs)
         sys.exit(1)
 
-    # Check if groups and bot_users are provided, If not use a basic one
-    if kwargs['groups'] is None:
-        kwargs['groups'] = DEFAULT_GROUPS
-    if kwargs['bot_users'] is None:
+    # Check if categories and bot_users are provided, If not use a basic one
+    if kwargs['categories'] is None or not kwargs['categories']:
+        log(
+            '[activity.categories] not found in config. Using default labels categories'
+        )
+        kwargs['categories'] = DEFAULT_CATEGORIES
+    if kwargs['bot_users'] is None or not kwargs['bot_users']:
+        log('[activity.bot_users] not found in config. Using default bot_users')
         kwargs['bot_users'] = DEFAULT_BOT_USERS
+
+    # If either issues only or merge_requests only are provided in categories,
+    # use the same for the other one
+    if (
+        'issues' in kwargs['categories']
+        and 'merge_requests' not in kwargs['categories']
+    ):
+        log(
+            'No labels for merge_requests found in config. Using the same '
+            'labels category defined for issues'
+        )
+        kwargs['categories']['merge_requests'] = kwargs['categories']['issues']
+    if (
+        'issues' not in kwargs['categories']
+        and 'merge_requests' in kwargs['categories']
+    ):
+        log(
+            'No labels for issues found in config. Using the same '
+            'labels category defined for merge_requests'
+        )
+        kwargs['categories']['issues'] = kwargs['categories']['merge_requests']
 
     common_kwargs = {
         'activity': kwargs['activity'],
@@ -335,10 +358,15 @@ def main(**kwargs):
         'strip_brackets': bool(kwargs['strip_brackets']),
         'include_contributors_list': bool(kwargs['include_contributors_list']),
         'branch': kwargs['branch'],
-        'groups': kwargs['groups'],
+        'categories': kwargs['categories'],
         'bot_users': kwargs['bot_users'],
         'cached': kwargs['cache'],
     }
+
+    # Print config and exit
+    if kwargs['print_config']:
+        print_config(kwargs)
+        sys.exit(0)
 
     if kwargs['all']:
         md = generate_all_activity_md(

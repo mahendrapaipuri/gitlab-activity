@@ -6,11 +6,12 @@ import pandas as pd
 import requests
 from tqdm.auto import tqdm
 
+from gitlab_activity.utils import convert_snake_case_to_camel_case
 from gitlab_activity.utils import get_namespace_projects
 from gitlab_activity.utils import log
 
 GQL_ELEMENT_QUERY = {
-    "mergeRequests": """\
+    "merge_requests": """\
         state
         id
         iid
@@ -170,7 +171,7 @@ class GitLabGraphQlQuery:
           The GitLab query target type. It can be a project, group or namespace
         activity : string
           The type of GitLab activity to query. Whether for issues or for
-          mergeRequests
+          merge_requests
         since : string
           Activity since this date. It should be a date string
         until : string
@@ -183,6 +184,8 @@ class GitLabGraphQlQuery:
         """
         self.domain = domain
         self.activity = activity
+        # For internal use only. GraphQL expects camelCased variables
+        self._activity = convert_snake_case_to_camel_case(activity)
         # Get headers
         self.headers = {
             'Authorization': f'Bearer {auth}',
@@ -199,21 +202,21 @@ class GitLabGraphQlQuery:
             self.targets = get_namespace_projects(self.domain, target, auth)
             self.scope = 'project'
 
-        # Different queries for issues and mergeRequests. We need to get created/merged
+        # Different queries for issues and merge_requests. We need to get created/merged
         # MRs in time window and created/closed for issues
         self.search_queries = {
-            'created': f'{self.activity} (createdAfter: \"{since}\", createdBefore: \"{until}\")',  # noqa: E501
+            'created': f'{self._activity} (createdAfter: \"{since}\", createdBefore: \"{until}\")',  # noqa: E501
         }
         if self.activity == 'issues':
             self.search_queries.update(
                 {
-                    'closed': f'{self.activity} (closedAfter: \"{since}\", closedBefore: \"{until}\")',  # noqa: E501
+                    'closed': f'{self._activity} (closedAfter: \"{since}\", closedBefore: \"{until}\")',  # noqa: E501
                 }
             )
-        elif self.activity == 'mergeRequests':
+        elif self.activity == 'merge_requests':
             self.search_queries.update(
                 {
-                    'merged': f'{self.activity} (mergedAfter: \"{since}\", mergedBefore: \"{until}\")',  # noqa: E501
+                    'merged': f'{self._activity} (mergedAfter: \"{since}\", mergedBefore: \"{until}\")',  # noqa: E501
                 }
             )
 
@@ -299,7 +302,7 @@ class GitLabGraphQlQuery:
                     # Parse the response for this pagination
                     json = self._request(gql_query)['data'][self.scope]
                     if ipage == 0:
-                        if json[self.activity]['count'] == 0:
+                        if json[self._activity]['count'] == 0:
                             log(
                                 f'Found no entries for {search_type} {self.activity} '
                                 f'query on target {target}'
@@ -308,15 +311,15 @@ class GitLabGraphQlQuery:
                             break
 
                         n_pages = int(
-                            np.ceil(json[self.activity]['count'] / n_per_page)
+                            np.ceil(json[self._activity]['count'] / n_per_page)
                         )
                         log(
-                            f"Found {json[self.activity]['count']} {search_type} "
+                            f"Found {json[self._activity]['count']} {search_type} "
                             f"{self.activity} on target {target}, which will take "
                             f"{n_pages} pages"
                         )
                         prog = tqdm(
-                            total=json[self.activity]['count'],
+                            total=json[self._activity]['count'],
                             desc='Downloading',
                             unit=f' {self.activity}',
                             disable=n_pages == 1 or not self.display_progress,
@@ -327,12 +330,12 @@ class GitLabGraphQlQuery:
                         break
 
                     # Add the JSON to the raw data list
-                    self.issues_and_or_mrs.extend(json[self.activity]['nodes'])
-                    pageInfo = json[self.activity]['pageInfo']
+                    self.issues_and_or_mrs.extend(json[self._activity]['nodes'])
+                    pageInfo = json[self._activity]['pageInfo']
                     self.last_query = gql_query
 
                     # Update progress and should we stop?
-                    prog.update(len(json[self.activity]['nodes']))
+                    prog.update(len(json[self._activity]['nodes']))
                     if not pageInfo['hasNextPage']:
                         break
 
@@ -359,9 +362,20 @@ class GitLabGraphQlQuery:
         # Get unique participants
         data['participants'] = data['participants'].map(self.get_unique_users)
 
-        if self.activity == 'mergeRequests':
+        if self.activity == 'merge_requests':
             data['mergeUser'] = data['mergeUser'].map(self.get_user)
             data['emojis'] = data['awardEmoji'].map(self.get_emoji_count)
             data['reviewers'] = data['reviewers'].map(self.get_unique_users)
             data['committers'] = data['committers'].map(self.get_unique_users)
+        # Snippet to generate dataset for tests
+        # tt = '_'.join(target.split('/'))
+        # import os
+        # if os.path.exists(tt):
+        #     prev_data = pd.read_pickle(f'{tt}.pkl')
+        #     curr_data = pd.concat(
+        #         [prev_data, data]
+        #     ).drop_duplicates(subset=['id']).reset_index(drop=True)
+        # else:
+        #     curr_data = data
+        # curr_data.to_pickle(f'{tt}.pkl')
         return data
