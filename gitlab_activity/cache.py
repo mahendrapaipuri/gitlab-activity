@@ -36,8 +36,8 @@ def cache_data(query_data, path_cache):
         path_repo_cache.mkdir(parents=True, exist_ok=True)
 
         # MRs cache
-        data_mrs = query_data.query("activity == 'mergeRequests'")
-        path_mr_cache = path_repo_cache.joinpath('mergeRequests.csv')
+        data_mrs = query_data.query("activity == 'merge_requests'")
+        path_mr_cache = path_repo_cache.joinpath('merge_requests.csv')
         if path_mr_cache.exists():
             mrs_cache = pd.read_csv(path_mr_cache)
             mrs_cache = pd.concat([mrs_cache, data_mrs], sort=False).drop_duplicates(

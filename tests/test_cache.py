@@ -41,10 +41,10 @@ def test_cache_data(tmpdir, df, targets):
     # Check if csv files exists
     for target in targets:
         assert path_tmp.joinpath(target, 'issues.csv').exists()
-        assert path_tmp.joinpath(target, 'mergeRequests.csv').exists()
+        assert path_tmp.joinpath(target, 'merge_requests.csv').exists()
 
 
-@mark.parametrize('activity,count', [('issues', 8), ('mergeRequests', 0)])
+@mark.parametrize('activity,count', [('issues', 6), ('merge_requests', 10)])
 def test_load_cache(tmpdir, activity, count):
     """Test load_from_data given csv data"""
     path_tmp = Path(tmpdir)
@@ -68,15 +68,15 @@ def test_cache_stats(tmpdir):
     path_cache.mkdir(parents=True)
 
     # Copy csv data to path_cache
-    for activity in ['issues', 'mergeRequests']:
+    for activity in ['issues', 'merge_requests']:
         src = DATA_PATH.joinpath(f'{activity}.csv')
         dst = path_cache.joinpath(f'{activity}.csv')
         shutil.copyfile(src, dst)
 
     # Get stats
     df = get_cache_stats(tmpdir)
-    assert df.query('activity == "issues"').iloc[0]['nrecords'] == 8
-    assert df.query('activity == "mergeRequests"').iloc[0]['nrecords'] == 0
+    assert df.query('activity == "issues"').iloc[0]['nrecords'] == 6
+    assert df.query('activity == "merge_requests"').iloc[0]['nrecords'] == 10
 
 
 def test_unknown_activity_type(tmpdir):
@@ -84,7 +84,9 @@ def test_unknown_activity_type(tmpdir):
     # Load from cache
     with raises(RuntimeError) as excinfo:
         load_from_cache(REPO, 'foo', path_cache=tmpdir)
-    assert str(excinfo.value) == 'Activity must be one of issues,mergeRequests, not foo'
+    assert (
+        str(excinfo.value) == 'Activity must be one of issues,merge_requests, not foo'
+    )
 
 
 def test_cache_path_not_found(tmpdir):

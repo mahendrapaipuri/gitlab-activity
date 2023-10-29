@@ -37,7 +37,7 @@ URL = f'https://gitlab.com/{NS}/{REPO}'
         ),
         # CLI with only namespace
         (
-            f'gitlab-activity -t {NS} -s 2021-01-01 -u 2023-09-01',
+            f'gitlab-activity -t {NS} -s 2021-01-01 -u 2023-10-28',
             'cli_timed_ns_activity',
         ),
         # CLI with only group
@@ -66,6 +66,9 @@ def test_cli(tmpdir, file_regression, cmd, basename):
     cmd += f' -c {CONFIG_PATH} -o {path_output}'
     run(cmd.split(), check=True)
     md = path_output.read_text()
+    if basename == 'cli_since_last_tag':
+        # Remove first line which will emit date that will always change
+        md = '\n'.join(md.splitlines()[1:])
     file_regression.check(md, basename=basename, extension='.md')
 
 
@@ -102,6 +105,8 @@ def test_cli_local_latest_activity(tmpdir, file_regression):
     env.update({'NEXT_VERSION_SPECIFIER': 'v3.1.0'})
     run(cmd.split(), check=True, cwd=repo_dir, env=env)
     md = path_output.read_text()
+    # Remove first line which will emit date that will always change
+    md = '\n'.join(md.splitlines()[1:])
     file_regression.check(md, extension='.md')
 
 
@@ -168,7 +173,7 @@ def test_cli_include_issues(tmpdir, file_regression):
 
     cmd = (
         f'gitlab-activity -c {CONFIG_PATH} -t {NS}/{REPO} {TIME_WINDOW} '
-        f'--activity mergeRequests --activity issues --include-opened '
+        f'--activity merge_requests --activity issues --include-opened '
         f'-o {path_output}'
     )
     run(cmd.split(), check=True)
@@ -213,7 +218,7 @@ def test_cli_config_files(tmpdir, file):
     shutil.copyfile(src, dst)
 
     # Invoke cmd
-    cmd = f'gitlab-activity --print-config'
+    cmd = f'gitlab-activity -t gitlab-org/gitlab-docs --print-config'
     completed = run(cmd.split(), check=True, capture_output=True, cwd=tmpdir)
 
     assert (

@@ -181,7 +181,7 @@ output = "coverage.xml"
 # Changelog file path
 output = "CHANGELOG.md"
 # Only query for merge requests
-activity = ["mergeRequests"]
+activity = ["merge_requests"]
 # Append to existing file
 append = true
 # Add list of contributors to each entry
@@ -192,14 +192,12 @@ heading_level = 2
 [tool.gitlab-activity.activity]
 # List of bot_users
 bot_users = [
-  "codecov",
-  "codeco-io",
-  "dependabot",
+  "(.*)codecov(.*)",
   "gitlab-bot",
   "ghost1",
 ]
 
-[tool.gitlab-activity.activity.groups]
+[tool.gitlab-activity.activity.categories]
 # Labels used in issues
 # Dicts must be inline for linters not to complain
 issues = [
@@ -212,9 +210,9 @@ issues = [
   { labels = [ "documentation", "docs", "doc" ], pre = [ "DOC", "DOCS" ], description = "Documentation improvements" },
   { labels = [ "deprecation", "deprecate" ], pre = [ "DEPRECATE", "DEPRECATION", "DEP" ], description = "Deprecated features" },
 ]
-# Labels used in mrs
+# Labels used in MRs
 # Dicts must be inline for linters not to complain
-mrs = [
+merge_requests = [
   { labels = [ "feature", "feat", "new" ], pre = [ "NEW", "FEAT", "FEATURE" ], description = "New features added" },
   { labels = [ "enhancement", "enhancements" ], pre = [ "ENH", "ENHANCEMENT", "IMPROVE", "IMP" ], description = "Enhancements made" },
   { labels = [ "bug", "bugfix", "bugs" ], pre = [ "FIX", "BUG" ], description = "Bugs fixed" },

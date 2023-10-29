@@ -92,13 +92,13 @@
             "type": "string"
           }
         },
-        "groups": {
+        "categories": {
           "type": "object",
           "properties": {
             "issues": {
               "$ref": "#/definitions/labelsDef"
             },
-            "mrs": {
+            "merge_requests": {
               "$ref": "#/definitions/labelsDef"
             }
           }

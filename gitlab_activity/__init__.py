@@ -6,13 +6,13 @@ START_MARKER = '<!-- <START NEW CHANGELOG ENTRY> -->'
 END_MARKER = '<!-- <END NEW CHANGELOG ENTRY> -->'
 
 # Supported activity types
-ALLOWED_ACTIVITIES = ['issues', 'mergeRequests']
+ALLOWED_ACTIVITIES = ['issues', 'merge_requests']
 
 # Default path to cache data
 DEFAULT_PATH_CACHE = Path('~/.cache/gitlab-activity-data').expanduser()
 
-# Default groups
-_DEFAULT_GROUPS = [
+# Default categories
+_DEFAULT_CATEGORIES = [
     {
         'labels': ['feature', 'feat', 'new'],
         'pre': ['NEW', 'FEAT', 'FEATURE'],
@@ -44,18 +44,14 @@ _DEFAULT_GROUPS = [
         'description': 'Deprecated features',
     },
 ]
-DEFAULT_GROUPS = {
-    'issues': _DEFAULT_GROUPS,
-    'mrs': _DEFAULT_GROUPS,
+DEFAULT_CATEGORIES = {
+    'issues': _DEFAULT_CATEGORIES,
+    'merge_requests': _DEFAULT_CATEGORIES,
 }
 
 # Default bot users
 DEFAULT_BOT_USERS = [
     'codecov',
-    'codeco-io',
-    'dependabot',
     'gitlab-bot',
-    'pre-commit-ci',
-    'welcome',
-    'stale',
+    'ghost1',
 ]
