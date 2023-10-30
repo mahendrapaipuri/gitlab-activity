@@ -218,7 +218,7 @@ def test_cli_config_files(tmpdir, file):
     shutil.copyfile(src, dst)
 
     # Invoke cmd
-    cmd = f'gitlab-activity -t gitlab-org/gitlab-docs --print-config'
+    cmd = f'gitlab-activity -t {NS}/{REPO} --print-config'
     completed = run(cmd.split(), check=True, capture_output=True, cwd=tmpdir)
 
     assert (
@@ -239,7 +239,7 @@ def test_cli_config_files_precendence(tmpdir):
         shutil.copyfile(src, dst)
 
     # Invoke cmd
-    cmd = f'gitlab-activity -t gitlab-org/gitlab-docs --print-config'
+    cmd = f'gitlab-activity -t {NS}/{REPO} --print-config'
     completed = run(cmd.split(), check=True, capture_output=True, cwd=tmpdir)
 
     assert (
