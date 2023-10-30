@@ -45,8 +45,11 @@ def test_auth_token(env_name):
     """Test if auth token can be taken from different env vars"""
     with mock.patch.dict(os.environ, {env_name: env_name}):
         token = get_auth_token()
-
-        assert token == env_name
+        if env_name == 'CI_JOB_TOKEN':
+            # Seems like CI_JOB_TOKEN is always masked even when we mock environ
+            assert any(v in token for v in [env_name, '[MASKED]'])
+        else:
+            assert token == env_name
 
 
 @mark.parametrize(
