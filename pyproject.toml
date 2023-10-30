@@ -73,6 +73,31 @@ allow-direct-references = true
 # Read version string from _version.py and use it for the package
 path = "gitlab_activity/_version.py"
 
+# Hatch environment that will be used to test different versions of Python
+[tool.hatch.envs.test]
+type = "virtual"
+matrix-name-format = "Testing with Python {value}"
+# Use Python distributions shipped from hatch
+python-sources = ["internal"]
+# Install optional dependencies group dev which will install all 
+# development related dependencies
+features = [
+  "dev",
+]
+
+[tool.hatch.envs.test.scripts]
+test = "pytest"
+check = "python --version"
+
+[[tool.hatch.envs.test.matrix]]
+python = [
+    "3.8",
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+]
+
 [tool.check-wheel-contents]
 ignore = ["W002"]  # Triggers on __init__.py's
 
