@@ -48,7 +48,8 @@ tests:
     # Codecov specific stuff
     - curl -Os https://uploader.codecov.io/latest/linux/codecov
     - chmod +x codecov
-    - ./codecov -t $CODECOV_TOKEN
+    # Seems like we need to add HTTP Proxy explicitly
+    - ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)%/'
   artifacts:
     paths:
