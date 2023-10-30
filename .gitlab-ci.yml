@@ -42,14 +42,24 @@ build-test:
 
 tests:
   stage: test
+  parallel:
+    matrix:
+      - PYVER: ["3.8", "3.9", "3.10", "3.11", "3.12"]
   script:
-    - pip install -e '.[dev]'
-    - pytest
+    # Install hatch first. Install it from Git until
+    # a release with [PR#1002](https://github.com/pypa/hatch/pull/1002)
+    # is made
+    - pip install git+https://github.com/pypa/hatch
+    # Checks the current python version
+    - hatch run +py=$PYVER test:check
+    # Runs tests
+    - hatch run +py=$PYVER test:test
     # Codecov specific stuff
     - curl -Os https://uploader.codecov.io/latest/linux/codecov
     - chmod +x codecov
     # Seems like we need to add HTTP Proxy explicitly
-    - ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY
+    # Add coverage report for each test separtely to codecov
+    - ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY -F py$PYVER
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)%/'
   artifacts:
     paths:

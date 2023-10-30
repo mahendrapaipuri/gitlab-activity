@@ -17,3 +17,18 @@ codecov:
 # you can also set after_n_builds on comments independently
 comment:
   after_n_builds: 5
+
+coverage:
+  status:
+    project:
+      default: false # disable the default status that measures entire project
+      source:
+        paths:
+          - "gitlab_activity/"
+        target: auto
+        threshold: 3%
+    patch:
+      default:
+        # basic
+        target: auto
+        threshold: 0%
