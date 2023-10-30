@@ -43,10 +43,7 @@ build-test:
 tests:
   stage: test
   script:
-    - pip install '.[dev]'
-    # Install dateutil from main to avoid deprecation warnings on Python3.12
-    # https://github.com/dateutil/dateutil/issues/1314
-    - pip install git+https://github.com/dateutil/dateutil
+    - pip install -e '.[dev]'
     - pytest
     # Codecov specific stuff
     - curl -Os https://uploader.codecov.io/latest/linux/codecov
