@@ -1,6 +1,8 @@
 """gitlab_activity Module"""
 from pathlib import Path
 
+from ._version import __version__
+
 # Markers to insert changelog entry
 START_MARKER = '<!-- <START NEW CHANGELOG ENTRY> -->'
 END_MARKER = '<!-- <END NEW CHANGELOG ENTRY> -->'
@@ -55,3 +57,5 @@ DEFAULT_BOT_USERS = [
     'gitlab-bot',
     'ghost1',
 ]
+
+__all__ = ['__version__']

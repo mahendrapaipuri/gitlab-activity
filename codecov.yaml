@@ -1,0 +1,34 @@
+# Codecov related config
+
+codecov:
+  bot: "mahendrapaipuri-codecov-bot"
+  # The age you want coverage reports to expire.
+  max_report_age: 24h
+
+  # Should Codecov wait for all other statuses to pass before sending its status.
+  require_ci_to_pass: yes
+
+  notify:
+    # https://docs.codecov.com/docs/notifications#section-preventing-notifications-until-after-n-builds
+    after_n_builds: 5
+    wait_for_ci: yes
+
+# do not notify until at least 5 builds have been uploaded from the CI pipeline
+# you can also set after_n_builds on comments independently
+comment:
+  after_n_builds: 5
+
+coverage:
+  status:
+    project:
+      default: false # disable the default status that measures entire project
+      source:
+        paths:
+          - "gitlab_activity/"
+        target: auto
+        threshold: 3%
+    patch:
+      default:
+        # basic
+        target: auto
+        threshold: 0%
