@@ -17,6 +17,7 @@ CONFIG_PATH = (
 URL = f'https://gitlab.com/{NS}/{REPO}'
 
 
+@mark.requires_internet
 @mark.parametrize(
     'cmd,basename',
     [
@@ -72,6 +73,7 @@ def test_cli(tmpdir, file_regression, cmd, basename):
     file_regression.check(md, basename=basename, extension='.md')
 
 
+@mark.requires_internet
 def test_cli_local_all_activity(tmpdir, file_regression):
     """Test that local git repo can all activity"""
     path_tmp = Path(tmpdir)
@@ -89,6 +91,7 @@ def test_cli_local_all_activity(tmpdir, file_regression):
     file_regression.check(md, extension='.md')
 
 
+@mark.requires_internet
 def test_cli_local_latest_activity(tmpdir, file_regression):
     """Test that local git repo can get latest activity"""
     path_tmp = Path(tmpdir)
@@ -110,6 +113,7 @@ def test_cli_local_latest_activity(tmpdir, file_regression):
     file_regression.check(md, extension='.md')
 
 
+@mark.requires_internet
 def test_cli_nonexistant_tags(tmpdir):
     """Test when target with no tags and no since dt is given"""
     path_tmp = Path(tmpdir)
@@ -137,6 +141,7 @@ def test_cli_nonexistant_local_repo(tmpdir):
     assert completed.returncode == 1
 
 
+@mark.requires_internet
 def test_cli_nonexistent_branch(tmpdir):
     """Test that no existend branch should emit empty md"""
     path_tmp = Path(tmpdir)
@@ -151,6 +156,7 @@ def test_cli_nonexistent_branch(tmpdir):
     assert 'Full Changelog' not in md
 
 
+@mark.requires_internet
 def test_cli_include_open(tmpdir, file_regression):
     """Test that include-open option includes all open MRs."""
     path_tmp = Path(tmpdir)
@@ -166,6 +172,7 @@ def test_cli_include_open(tmpdir, file_regression):
     file_regression.check(md, extension='.md')
 
 
+@mark.requires_internet
 def test_cli_include_issues(tmpdir, file_regression):
     """Test that issues and include-opened option includes all issues."""
     path_tmp = Path(tmpdir)
@@ -182,6 +189,7 @@ def test_cli_include_issues(tmpdir, file_regression):
     file_regression.check(md, extension='.md')
 
 
+@mark.requires_internet
 def test_cli_include_contributors(tmpdir, file_regression):
     """Test that include-contributors-list option includes list of contributors."""
     path_tmp = Path(tmpdir)
@@ -248,6 +256,7 @@ def test_cli_config_files_precendence(tmpdir):
     )
 
 
+@mark.requires_internet
 def test_cli_append_output_create_file(tmpdir):
     """Test if we create a file when --append and --output are used together"""
     path_tmp = Path(tmpdir)
@@ -297,6 +306,7 @@ def test_cli_append_output_with_multiple_markers(tmpdir):
     assert 'More than one insert markers are found' in completed.stderr.decode()
 
 
+@mark.requires_internet
 def test_cli_raise_exception_when_target_is_unknown():
     """Test if we raise exception when targed cannot be identified"""
     # Invoke cmd
