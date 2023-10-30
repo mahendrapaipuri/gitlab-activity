@@ -43,7 +43,7 @@ def test_read_config_validation(tmpdir, config):
 )
 def test_auth_token(env_name):
     """Test if auth token can be taken from different env vars"""
-    with mock.patch.dict(os.environ, {env_name: env_name}):
+    with mock.patch.dict(os.environ, {env_name: env_name}, clear=True):
         print(os.environ)
         token = get_auth_token()
         if env_name == 'CI_JOB_TOKEN':
