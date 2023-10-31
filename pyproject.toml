@@ -98,6 +98,16 @@ python = [
     "3.12",
 ]
 
+[tool.hatch.envs.docs]
+type = "virtual"
+# dependencies = [
+#     "sphinx",
+# ]
+
+[tool.hatch.envs.docs.scripts]
+build = "cd docs/website && npm install && npm build"
+serve = "cd docs/website && npm run serve"
+
 [tool.check-wheel-contents]
 ignore = ["W002"]  # Triggers on __init__.py's
 
