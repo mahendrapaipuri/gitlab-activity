@@ -106,6 +106,7 @@ release_job:
     # Install hatch
     - pip install git+https://github.com/pypa/hatch
     - pip install -e .
+    - echo "Hello"
     # Bump version
     - hatch version ${VERSION}
     # Get new version
