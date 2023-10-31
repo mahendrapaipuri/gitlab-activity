@@ -1,0 +1,75 @@
+{
+  "name": "gitlab-activity-docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "doc:start": "docusaurus start",
+    "doc:build": "docusaurus build",
+    "doc:swizzle": "docusaurus swizzle",
+    "doc:deploy": "docusaurus deploy",
+    "copy:md": "cp ../../README.md docs/00-introduction.md && cp ../../example-configs/README.md docs/01-configuration.md && cp ../../CONTRIBUTING.md docs/03-contributing.md",
+    "start": "npm run copy:md && npm run doc:start",
+    "build": "npm run copy:md && npm run doc:build",
+    "swizzle": "npm run copy:md && npm run doc:swizzle",
+    "deploy": "npm run copy:md && npm run doc:deploy",
+    "serve": "rm -rf gitlab-activity && rm -rf build/gitlab-activity && mkdir -p gitlab-activity && cp -r build/* gitlab-activity/ && mv -f gitlab-activity build/ && docusaurus serve",
+    "lint": "npm run prettier && npm run stylelint",
+    "lint:check": "npm run prettier:check && npm run stylelint:check",
+    "prettier": "prettier --write \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
+    "prettier:check": "prettier --list-different \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
+    "stylelint": "npm run stylelint:check --fix",
+    "stylelint:check": "stylelint --cache \"src/**/*.css\"",
+    "stylelint:files": "stylelint --fix"
+  },
+  "dependencies": {
+    "@docusaurus/core": "2.4.3",
+    "@docusaurus/preset-classic": "2.4.3",
+    "@mdx-js/react": "^1.6.22",
+    "clsx": "^1.2.1",
+    "prism-react-renderer": "^1.3.5",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "2.4.3",
+    "prettier": "^2.8.4",
+    "stylelint": "^14.9.1",
+    "stylelint-config-prettier": "^9.0.4",
+    "stylelint-config-recommended": "^8.0.0",
+    "stylelint-config-standard": "^26.0.0",
+    "stylelint-prettier": "^2.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=16.14"
+  },
+  "styleModule": "style/index.js",
+  "prettier": {
+    "singleQuote": true
+  },
+  "stylelint": {
+    "extends": [
+      "stylelint-config-recommended",
+      "stylelint-config-standard",
+      "stylelint-prettier/recommended"
+    ],
+    "rules": {
+      "no-empty-source": null,
+      "selector-class-pattern": null,
+      "property-no-vendor-prefix": null,
+      "selector-no-vendor-prefix": null,
+      "value-no-vendor-prefix": null
+    }
+  }
+}

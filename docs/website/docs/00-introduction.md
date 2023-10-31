@@ -46,14 +46,16 @@ two things:
 - It can be integrated into CI release jobs to update the changelogs from last stable
   tag to current before making the release.
 
-:::important
+---
+
+**Note**:
 
 This tool is heavily inspired from
 [github-activity](https://github.com/executablebooks/github-activity) developed by the
 folks at [Jupyter project](https://jupyter.org/). All the credit should go to them
 and we thank them for this super useful tool.
 
-:::
+---
 
 ## Installation
 
@@ -76,9 +78,7 @@ This will output a markdown with MRs activity since last tag.
 
 ## Configuration
 
-All the CLI options can be configured _via_ configuration file. An example
-[config](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/blob/main/example-configs/.gitlab-activity.toml)
-file can be used as a reference.
+All the CLI options can be configured _via_ configuration file. An example [config](./config/.gitlab-activity.toml) file can be used as a reference.
 
 As stated above the configuration can be integrated into `pyproject.toml` in
 `[tool.gitlab-activity]` section or `package.json` in `gitlab-activity` key.

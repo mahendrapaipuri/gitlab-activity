@@ -160,14 +160,10 @@ def generate_all_activity_md(
 
         Must be one of form:
 
-            [
-                {"labels": [ "feature", "feat", "new" ],
-                 "pre": [ "NEW", "FEAT", "FEATURE" ],
-                 "description": "New features added" },
-            ]
+        `[{"labels": ["feature", "feat"], "pre": ["FEAT"],
+        "description": "New features added" },]`
 
         The elements in labels and pre can be regex expressions.
-
         If None, all of the MRs will be placed under one category.
     bot_users: list of str | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
@@ -397,14 +393,10 @@ def generate_activity_md(
 
         Must be one of form:
 
-            [
-                {"labels": [ "feature", "feat", "new" ],
-                 "pre": [ "NEW", "FEAT", "FEATURE" ],
-                 "description": "New features added" },
-            ]
+        `[{"labels": ["feature", "feat"], "pre": ["FEAT"],
+        "description": "New features added" },]`
 
         The elements in labels and pre can be regex expressions.
-
         If None, all of the MRs will be placed under one category.
     bot_users: list of strs | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
