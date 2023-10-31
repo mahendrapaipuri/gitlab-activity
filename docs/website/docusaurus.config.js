@@ -43,14 +43,14 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/tree/main/docs/docs',
+            'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/tree/main/docs/website',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/tree/main/docs/docs',
+            'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/tree/main/docs/website',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
