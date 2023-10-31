@@ -51,7 +51,6 @@ repos:
 
       # Lint: YAML files
       - id: check-yaml
-        args: ["--unsafe"]
 
   # Lint: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit

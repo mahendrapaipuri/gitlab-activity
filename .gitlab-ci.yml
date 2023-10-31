@@ -1,10 +1,3 @@
-spec:
-  inputs:
-    version:
-      default: next
-    branch:
-      default: main
----
 image: python:3.12-bullseye
 
 stages:
@@ -101,16 +94,25 @@ pages:
 # Release
 release_job:
   stage: deploy
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  #     when: manual
+  #     allow_failure: true
+  when: manual
+  variables:
+    VERSION: minor
+    BRANCH: main
   script:
     # Install hatch
     - pip install git+https://github.com/pypa/hatch
     - pip install -e .
     # Bump version
-    - hatch version $[[ inputs.version ]]
+    - hatch version ${VERSION}
     # Get new version
     - export NEXT_VERSION_SPECIFIER=$(hatch version)
     # Generate changelog
     - gitlab-activity --append -o CHANGELOG.md
+    - cat CHANGELOG.md
     - git add CHANGELOG.md gitlab_activity/_version.py
     - git commit -m '[skip-ci] Auto-update version and CHANGELOG.md'
     # Create new tag
