@@ -100,6 +100,7 @@ python = [
 
 [tool.hatch.envs.docs]
 type = "virtual"
+skip-install = true
 # dependencies = [
 #     "sphinx",
 # ]
