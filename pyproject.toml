@@ -106,7 +106,7 @@ skip-install = true
 # ]
 
 [tool.hatch.envs.docs.scripts]
-build = "cd docs/website && npm install && npm build"
+build = "cd docs/website && npm install && npm run build"
 serve = "cd docs/website && npm run serve"
 
 [tool.check-wheel-contents]
