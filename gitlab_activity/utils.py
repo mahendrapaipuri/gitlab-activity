@@ -142,8 +142,7 @@ def get_auth_token():
 
     - First env var `GITLAB_ACCESS_TOKEN` is check.
     - If there is no token yet, we look into `CI_JOB_TOKEN` that is available in CI jobs
-    - If it fails in previous two attempts, we try to get it from
-     `glab auth status -t` cmd
+    - If it fails in previous attempts, we try to get it from `glab auth status -t` cmd
 
     Returns
     -------
