@@ -680,7 +680,7 @@ def generate_activity_md(
         md += ['']
         # TODO: Add link to docs when available
         md += [
-            f'{extra_head}{activity_head}## [Contributors to this release](https://gitlab.com/mahendrapaipuri/gitlab-activity)'
+            f'{extra_head}{activity_head}## [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)'
         ]
         md += ['']
         md += [contributor_md]
