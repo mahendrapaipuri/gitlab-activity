@@ -32,3 +32,14 @@ coverage:
         # basic
         target: auto
         threshold: 0%
+
+flag_management:
+  default_rules: # the rules that will be followed for any flag added, generally
+    carryforward: true
+    statuses:
+      - type: project
+        target: auto
+        threshold: 3%
+      - type: patch
+        target: auto
+        threshold: 0%

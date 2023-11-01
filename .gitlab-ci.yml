@@ -72,7 +72,7 @@ tests:
     # Add coverage report for each test separtely to codecov
     - ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY -F py$PYVER
   after_script:
-    - cp codecov.xml build/reports/
+    - cp coverage.xml build/reports/
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)%/'
   artifacts:
     paths:
