@@ -37,7 +37,19 @@ placed elsewhere, users need to pass the path of config file using `--config` CL
 All CLI options can be configured within `options` section and repository specific
 metadata like the labels used by Issues and MRs, bot users used within the repository
 can be configured within `activity` section. Within the `activity` section, users can
-define list of bot users under variable `bot_users`. These users will be excluded in
+define list of bot users under variable `bot_users`. For example, it can be defined as follows:
+
+```
+[activity]
+
+bot_users = [
+  "gitlab-bot",
+  "ghost1",
+  "codecov-bot",
+]
+```
+
+Using such a config, all these users will be excluded in
 the generated report in the contributors list.
 
 `activity` section has another subsection called `activity.categories` which should be
