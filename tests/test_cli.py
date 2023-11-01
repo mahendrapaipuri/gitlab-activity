@@ -330,3 +330,40 @@ def test_cli_errors_when_since_not_given_for_group():
         f'--since option is required when a group and/or namespace activity'
         in completed.stderr.decode()
     )
+
+
+def test_cli_with_append_no_output():
+    """Test when --append flag is passed and not output"""
+    # Invoke cmd
+    cmd = f'gitlab-activity -c {CONFIG_PATH} -t {NS}/{REPO} --append'
+    completed = run(cmd.split(), capture_output=True)
+
+    assert completed.returncode == 1
+
+
+def test_cli_when_no_issues_cats_given():
+    """Test when no cats in issues config given"""
+    cfg = (
+        Path('tests')
+        .resolve()
+        .joinpath('resources', 'config', '.gitlab-activity-no-issues.toml')
+    )
+    # Invoke cmd
+    cmd = f'gitlab-activity -c {cfg} -t {NS}/{REPO}'
+    completed = run(cmd.split(), capture_output=True)
+
+    assert completed.returncode == 0
+
+
+def test_cli_when_no_mrs_cats_given():
+    """Test when no cats in mrs config given"""
+    cfg = (
+        Path('tests')
+        .resolve()
+        .joinpath('resources', 'config', '.gitlab-activity-no-mrs.toml')
+    )
+    # Invoke cmd
+    cmd = f'gitlab-activity -c {cfg} -t {NS}/{REPO}'
+    completed = run(cmd.split(), capture_output=True)
+
+    assert completed.returncode == 0
