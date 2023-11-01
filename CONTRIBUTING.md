@@ -1,8 +1,3 @@
----
-id: contributing
-title: Contributing
----
-
 # Contributing to GitLab Activity
 
 If you're reading this section, you're probably interested in contributing to

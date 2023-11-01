@@ -201,7 +201,7 @@ def test_cli_include_contributors(tmpdir, file_regression):
     run(cmd.split(), check=True)
     md = path_output.read_text()
     md = md.split(
-        '## [Contributors to this release](https://gitlab.com/mahendrapaipuri/gitlab-activity)'
+        '## [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)'
     )[-1]
     file_regression.check(md, extension='.md')
 
