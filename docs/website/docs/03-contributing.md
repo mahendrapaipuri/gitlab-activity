@@ -3,6 +3,8 @@ id: contributing
 title: Contributing
 ---
 
+<!-- ../../../CONTRIBUTING.md -->
+
 # Contributing to GitLab Activity
 
 If you're reading this section, you're probably interested in contributing to

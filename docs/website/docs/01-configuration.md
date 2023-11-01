@@ -3,6 +3,8 @@ id: config
 title: Configuration
 ---
 
+<!-- ../../../example-configs/README.md -->
+
 # Configuration
 
 This folder contains example config files that can be used to configure

@@ -1,10 +1,6 @@
----
-id: intro
-title: Introduction
-slug: /
----
-
 # GitLab Changelog Generator
+
+[![ci](https://gitlab.com/mahendrapaipuri/gitlab-activity/badges/main/pipeline.svg)](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/commits/main) [![codecov](https://codecov.io/gl/mahendrapaipuri/gitlab-activity/graph/badge.svg?token=O60VKC38YQ)](https://codecov.io/gl/mahendrapaipuri/gitlab-activity)
 
 ## What is it about?
 

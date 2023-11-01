@@ -1,8 +1,3 @@
----
-id: config
-title: Configuration
----
-
 # Configuration
 
 This folder contains example config files that can be used to configure
