@@ -70,8 +70,8 @@ tests:
     - chmod +x codecov
     # Seems like we need to add HTTP Proxy explicitly
     # Add coverage report only for one version
-    # We could not make flags work for some reason. Lets try to do it in future
-    - if [ $PYVER == "3.12" ]; then ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY; fi
+    - ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY -f coverage.xml -F py$PYVER
+    # - if [ $PYVER == "3.12" ]; then ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY; fi
   after_script:
     - cp coverage.xml build/reports/
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)%/'
