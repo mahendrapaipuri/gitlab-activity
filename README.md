@@ -1,6 +1,6 @@
 # GitLab Changelog Generator
 
-[![ci](https://gitlab.com/mahendrapaipuri/gitlab-activity/badges/main/pipeline.svg)](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/commits/main) [![codecov](https://codecov.io/gl/mahendrapaipuri/gitlab-activity/graph/badge.svg?token=O60VKC38YQ)](https://codecov.io/gl/mahendrapaipuri/gitlab-activity) [![docs](https://img.shields.io/badge/docs-access-green?labelColor=orange&style=flat&link=https://mahendrapaipuri.gitlab.io/gitlab-activity/)](https://mahendrapaipuri.gitlab.io/gitlab-activity/)
+[![ci](https://gitlab.com/mahendrapaipuri/gitlab-activity/badges/main/pipeline.svg)](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/commits/main) [![codecov](https://codecov.io/gl/mahendrapaipuri/gitlab-activity/graph/badge.svg?token=O60VKC38YQ)](https://codecov.io/gl/mahendrapaipuri/gitlab-activity) [![docs](https://img.shields.io/badge/docs-access-green?style=flat&link=https://mahendrapaipuri.gitlab.io/gitlab-activity/)](https://mahendrapaipuri.gitlab.io/gitlab-activity/)
 
 ## What is it about?
 

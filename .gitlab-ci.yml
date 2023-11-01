@@ -114,10 +114,14 @@ prepare_release:
     - gitlab-activity --append -o CHANGELOG.md
     - cat CHANGELOG.md
     - git add CHANGELOG.md gitlab_activity/_version.py
+    # Run pre-commit to auto format files
+    - pre-commit install
+    - pre-commit run --all-files || exit 0
     # Configure mail and name of the user who should be visible in the commit history
     - git config --global user.email 'release-bot@gitlab.com'
     - git config --global user.name 'Release Bot'
-    - git commit -m 'Bump version and update CHANGELOG.md'
+    # Dont run pre-commit here
+    - git commit -m 'Bump version and update CHANGELOG.md' --no-verify
     # Create new tag
     - git tag ${NEXT_VERSION_SPECIFIER} -m "Release ${NEXT_VERSION_SPECIFIER}"
     # Set remote push URL and push to originating branch
