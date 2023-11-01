@@ -66,6 +66,73 @@ gitlab-activity -t ns/repo --all --output CHANGELOG.md
 gitlab-activity -t ns/repo --append --output CHANGELOG.md
 ```
 
+## Using in CI
+
+The repository of `gitlab-activity` uses the tool to generate its own
+[changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/blob/main/CHANGELOG.md)
+file. Here is the excerpt of the CI job file that does the job of updating changelog
+
+```
+prepare_release:
+  stage: release
+  when: manual
+  variables:
+    VERSION: minor
+    BRANCH: main
+  before_script:
+    - echo "Preparing release..."
+    # Install hatch and install package
+    - pip install git+https://github.com/pypa/hatch
+    - pip install -e .
+  script:
+    - hatch version ${VERSION}
+    # Get new version
+    - export NEXT_VERSION_SPECIFIER=$(hatch version)
+    # Generate changelog
+    - gitlab-activity --append -o CHANGELOG.md
+    - cat CHANGELOG.md
+    - git add CHANGELOG.md gitlab_activity/_version.py
+    # Configure mail and name of the user who should be visible in the commit history
+    - git config --global user.email 'release-bot@gitlab.com'
+    - git config --global user.name 'Release Bot'
+    - git commit -m 'Bump version and update CHANGELOG.md'
+    # Create new tag
+    - git tag ${NEXT_VERSION_SPECIFIER} -m "Release ${NEXT_VERSION_SPECIFIER}"
+    # Set remote push URL and push to originating branch
+    - git remote set-url --push origin "https://${GITLAB_CI_USER}:${GITLAB_CI_TOKEN}@${CI_REPOSITORY_URL#*@}"
+    - git push origin HEAD:${CI_COMMIT_REF_NAME} -o ci.skip # Pushes to the same branch as the trigger
+    - git push origin ${NEXT_VERSION_SPECIFIER} # Pushes the tag BUT triggers the CI to run tagged jobs
+  # Only run on main branch and do not run on tags
+  # Because we create tag in this job
+  only:
+    - main
+  except:
+    - tags
+
+```
+
+The current project uses [`hatch`](https://github.com/pypa/hatch) as the build system.
+As it is a manual job, the maintainer can set the version using `VERSION` variable in
+GitLab UI before triggering job. Using that `VERSION` variable, `hatch` bumps version
+and sets a new environment variable `NEXT_VERSION_SPECIFIER`.
+
+:::important
+
+We **should** set this environment variable `NEXT_VERSION_SPECIFIER` in the CI job to
+the bumped version. `gitlab-activity` reads this environment variable, if set, and emits
+the version name in the Changelog. If not, it will emit the dates in the Changelog
+header
+
+:::
+
+The command `gitlab-activity --append -o CHANGELOG.md` will update the Changelog since
+the last tag until the new one. The rest of the job is to commit the changes and create
+a new tag and eventually push them to remote.
+
+The tag commit will trigger a new CI in the current project which will eventually
+publish the package to PyPI. Notice that in the current job show above, we add a rule
+to skip that job for tags using `except:` keyword to avoid infinite loop.
+
 ## Contributors list
 
 `gitlab-activity` outputs the contributors list, if asked, at the end of each tag entry in the changelog file. The list of contributors are estimated in the following way:
