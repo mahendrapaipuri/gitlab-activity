@@ -125,8 +125,7 @@ def test_cli_nonexistant_tags(tmpdir):
         f'-o {path_output}'
     )
     completed = run(cmd.split(), capture_output=True, cwd=tmpdir)
-    assert 'RuntimeError' in completed.stderr.decode()
-    assert completed.returncode == 1
+    assert completed.returncode == 0
 
 
 def test_cli_nonexistant_local_repo(tmpdir):

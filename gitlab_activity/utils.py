@@ -142,7 +142,8 @@ def get_auth_token():
 
     - First env var `GITLAB_ACCESS_TOKEN` is check.
     - If there is no token yet, we look into `CI_JOB_TOKEN` that is available in CI jobs
-    - If it fails in previous attempts, we try to get it from `glab auth status -t` cmd
+    - If it fails in previous two attempts, we try to get it from
+     `glab auth status -t` cmd
 
     Returns
     -------
@@ -293,25 +294,31 @@ def get_commits(domain, target, targetid, auth, since_dt=None, until_dt=None):
     # Make query params
     query_params = {}
     if since_dt is not None:
-        query_params.update({'since': since_dt})
+        query_params.update({'since': since_dt, 'page': 1, 'per_page': 50})
     if until_dt is not None:
-        query_params.update({'until': until_dt})
-    try:
-        response = requests.get(url, params=query_params, headers=headers)
-        response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        # Ignore all errors
-        log(f'Failed to get commits for the target {target}')
-        return None
-    else:
-        data = response.json()
-        if len(data) < 1:
-            log(
-                f'No commits found between {since_dt} and {until_dt} '
-                f'for the target {target}'
-            )
+        query_params.update({'until': until_dt, 'page': 1, 'per_page': 50})
+    all_data = []
+    while True:
+        try:
+            response = requests.get(url, params=query_params, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:  # noqa: PERF203
+            # Ignore all errors
+            log(f'Failed to get commits for the target {target}')
             return None
-        return data
+        else:
+            all_data.extend(response.json())
+            if response.headers.get('x-next-page'):
+                query_params['page'] += 1
+            else:
+                break
+    if len(all_data) < 1:
+        log(
+            f'No commits found between {since_dt} and {until_dt} '
+            f'for the target {target}'
+        )
+        return None
+    return all_data
 
 
 def get_all_tags(domain, target, targetid, auth):
@@ -345,22 +352,26 @@ def get_all_tags(domain, target, targetid, auth):
 
     # Return [] if there are no tags
     if len(response.json()) == 0:
-        return []
+        until_dt = str(datetime.datetime.now().astimezone(pytz.utc))
+        all_tags = [['Untagged release', '', until_dt]]
+    else:
+        all_tags = [
+            [t['name'], t['target'], t['commit']['created_at']] for t in response.json()
+        ]
 
-    all_tags = [
-        (t['name'], t['target'], t['commit']['created_at']) for t in response.json()
-    ]
-
-    # Finally add a dummy tag 0.0.0 from start of the repository to get
-    # first tag's activity in the report
-    # For that we need to make another API request to commits endpoint
-    # to get first commit date and hash
-    #
     # We make a query for commits only until first tag commit which
     # should give us all commits from start
     commits = get_commits(domain, target, targetid, auth, until_dt=all_tags[-1][-1])
+
+    # Finally add a dummy tag 0.0.0 from start of the repository to get
+    # first tag's activity in the report
     if commits is not None:
-        all_tags += [('0.0.0', commits[-1]['id'], commits[-1]['committed_date'])]
+        all_tags += [['0.0.0', commits[-1]['id'], commits[-1]['committed_date']]]
+        # Use first commit as pseudo tag so we get activity since begining until first
+        # tag
+        if all_tags[0][0] == 'Untagged release':
+            all_tags[0][1] = commits[-1]['id']
+            all_tags[0][2] = commits[-1]['committed_date']
     return all_tags
 
 
