@@ -101,13 +101,13 @@ python = [
 [tool.hatch.envs.docs]
 type = "virtual"
 skip-install = true
-# dependencies = [
-#     "sphinx",
-# ]
+dependencies = [
+    "sphinx",
+]
 
 [tool.hatch.envs.docs.scripts]
 build = "cd docs/website && npm install && npm run build"
-serve = "cd docs/website && npm run serve"
+serve = "cd docs/website && npm run start"
 
 [tool.check-wheel-contents]
 ignore = ["W002"]  # Triggers on __init__.py's
