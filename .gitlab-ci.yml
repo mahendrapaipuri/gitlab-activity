@@ -30,6 +30,8 @@ pre-commit:
     paths:
       - build/reports/
     expire_in: 1 day
+  except:
+    - tags
 
 build-test:
   stage: build
@@ -39,6 +41,8 @@ build-test:
     paths:
       - build/reports/
     expire_in: 1 day
+  except:
+    - tags
 
 build-doc:
   stage: build
@@ -50,6 +54,8 @@ build-doc:
     paths:
       - build/reports/
     expire_in: 1 day
+  except:
+    - tags
 
 tests:
   stage: test
@@ -79,6 +85,8 @@ tests:
     paths:
       - build/reports/
     expire_in: 1 day
+  except:
+    - tags
 
 # Generate docs
 pages:
@@ -93,6 +101,8 @@ pages:
       - public
   only:
     - main
+  except:
+    - tags
 
 # Prepare release by tagging and adding entry to changelog
 prepare_release:
