@@ -243,7 +243,7 @@ def configure(ctx, _, filename):
 )
 def main(**kwargs):
     """Generate a markdown changelog of GitLab activity within a date window"""
-    if not git_installed_check():
+    if not git_installed_check():  # pragma: no cover
         log('git is required to run gitlab-activity. Exiting...')
         sys.exit(1)
 
@@ -261,7 +261,7 @@ def main(**kwargs):
     if not kwargs['auth']:
         kwargs['auth'] = get_auth_token()
         # We can't use this without auth because we hit rate limits immediately
-        if not kwargs['auth']:
+        if not kwargs['auth']:  # pragma: no cover
             log(
                 'Either the environment variable GITLAB_ACCESS_TOKEN or the '
                 '--auth flag or must be used to pass a Personal Access Token '
