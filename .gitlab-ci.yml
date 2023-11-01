@@ -88,6 +88,34 @@ tests:
   except:
     - tags
 
+test-release:
+  stage: test
+  before_script:
+    # Install prerequisites
+    - python3 -m pip install pipx
+    - python3 -m pipx ensurepath
+    # distutils has been removed in Python 3.12 and pypiserver needs distutils
+    # So we install setuptools https://docs.python.org/3.12/whatsnew/3.12.html
+    - python3 -m pip install setuptools pypiserver
+  script:
+    # Build package
+    - pipx run build --outdir dist .
+    # Check dist files
+    - pipx run twine check dist/*
+    # Start a test pypi server
+    - mkdir -p test_registry
+    - pypi-server run -p 8081  -P . -a . -o  -v test_registry &
+    # Sleep for a while for server to start
+    - sleep 30
+    # Upload package to test
+    - pipx run twine upload --repository-url=http://localhost:8081 --user=foo --password=bar dist/*
+  artifacts:
+    paths:
+      - build/reports/
+    expire_in: 1 day
+  except:
+    - tags
+
 # Generate docs
 pages:
   stage: deploy
@@ -173,21 +201,11 @@ publish:
     # Install prerequisites
     - python3 -m pip install pipx
     - python3 -m pipx ensurepath
-    # distutils has been removed in Python 3.12 and pypiserver needs distutils
-    # So we install setuptools https://docs.python.org/3.12/whatsnew/3.12.html
-    - python3 -m pip install setuptools pypiserver
   script:
     # Build package
     - pipx run build --outdir dist .
     # Check dist files
     - pipx run twine check dist/*
-    # Start a test pypi server
-    - mkdir -p test_registry
-    - pypi-server run -p 8081  -P . -a . -o  -v test_registry &
-    # Sleep for a while for server to start
-    - sleep 30
-    # Upload package to test
-    - pipx run twine upload --repository-url=http://0.0.0.0:8081 --user=foo --password=bar dist/*
     # Now if everything went well till this point, publish to PyPI
     - pipx run twine upload --user=${TWINE_USERNAME} --password=${TWINE_PASSWORD} dist/*
   after_script:
