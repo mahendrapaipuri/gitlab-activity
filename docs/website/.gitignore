@@ -22,3 +22,6 @@ yarn-error.log*
 # ESLint
 .eslintcache
 .stylelintcache
+
+# Ignore api folder in static
+static/api

@@ -69,8 +69,9 @@ tests:
     - curl -Os https://uploader.codecov.io/latest/linux/codecov
     - chmod +x codecov
     # Seems like we need to add HTTP Proxy explicitly
-    # Add coverage report for each test separtely to codecov
-    - ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY -F py$PYVER
+    # Add coverage report only for one version
+    - ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY -f coverage.xml -F py$PYVER
+    # - if [ $PYVER == "3.12" ]; then ./codecov -t $CODECOV_TOKEN -U $HTTPS_PROXY; fi
   after_script:
     - cp coverage.xml build/reports/
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)%/'
@@ -104,7 +105,7 @@ prepare_release:
     - echo "Preparing release..."
     # Install hatch and install package
     - pip install git+https://github.com/pypa/hatch
-    - pip install -e .
+    - pip install -e '.[dev]'
   script:
     - hatch version ${VERSION}
     # Get new version
@@ -124,7 +125,7 @@ prepare_release:
     - git push origin HEAD:${CI_COMMIT_REF_NAME} -o ci.skip # Pushes to the same branch as the trigger
     - git push origin ${NEXT_VERSION_SPECIFIER} # Pushes the tag BUT triggers the CI to run tagged jobs
   after_script:
-    - echo "Version bumped to ${NEXT_VERSION_SPECIFIER} and Changelog entry added"
+    - echo "Version bumped and Changelog entry added"
   # Only run on main branch and do not run on tags
   # Because we create tag in this job
   only:
