@@ -684,7 +684,6 @@ def generate_activity_md(
         ]
         md += ['']
         md += [contributor_md]
-        md += ['']
 
     # Finally join all lines
     return '\n'.join(md)
@@ -749,7 +748,9 @@ def insert_entry(changelog, entry):
     """
     # Test if we are augmenting an existing changelog entry (for new PRs)
     # Preserve existing PR entries since we may have formatted them
-    new_entry = f"{START_MARKER}\n\n{entry}\n\n{END_MARKER}"
+    # Strip new lines in entry
+    entry = entry.split('\n')
+    new_entry = f'{START_MARKER}\n\n{entry}\n\n{END_MARKER}'
     changelog = changelog.replace(END_MARKER, "")
     changelog = changelog.replace(START_MARKER, new_entry)
     return format(changelog)

@@ -8,6 +8,8 @@
 # - Run on all files:   pre-commit run --all-files
 # - Register git hooks: pre-commit install --install-hooks
 #
+# Exclude CHANGELOG.md as it can "sometimes" block release process
+exclude: "CHANGELOG.md"
 repos:
   # Autoformat: Python code
   - repo: https://github.com/ambv/black
