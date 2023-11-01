@@ -116,7 +116,7 @@ prepare_release:
     - git add CHANGELOG.md gitlab_activity/_version.py
     # Run pre-commit to auto format files
     - pre-commit install
-    - pre-commit run --all-files || exit 0
+    - pre-commit run --all-files || true
     # Configure mail and name of the user who should be visible in the commit history
     - git config --global user.email 'release-bot@gitlab.com'
     - git config --global user.name 'Release Bot'
