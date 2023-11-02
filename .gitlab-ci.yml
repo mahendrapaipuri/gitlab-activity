@@ -4,8 +4,14 @@ stages:
   - pretest
   - build
   - test
+  - pre-release
   - deploy
   - release
+
+# Global variables for release jobs
+variables:
+  VERSION: minor
+  BRANCH: main
 
 # Create an anchor to setup node
 .setup_node:
@@ -19,6 +25,46 @@ stages:
     - export PATH=/root/nodejs/bin:$PATH
     - npm --version
 
+# Anchor for setting up prepare_release job
+.setup_prepare_release:
+  before_script:
+    - echo "Preparing release..."
+    # Install hatch and install package
+    - pip install git+https://github.com/pypa/hatch
+    - pip install -e '.[dev]'
+
+# Anchor with reference for prepare_release job.
+# We will test it in CI as well without actually pushing
+# the commits. So we reference the anchor to avoid duplication
+.prepare_release: &prepare_release
+  # Check out correct branch
+  # By default a shallow clone is made in CI. So first fetch from origin
+  # and then checkout if branch is other than main
+  - |
+    if [[ ${BRANCH} != "main" ]]; then
+        git fetch origin ${BRANCH}
+        git checkout ${BRANCH}
+    fi
+  # Bump version
+  - hatch version ${VERSION}
+  # Get new version
+  - export NEXT_VERSION_SPECIFIER=$(hatch version)
+  # Generate changelog
+  - gitlab-activity --append -o CHANGELOG.md
+  - cat CHANGELOG.md
+  - git add CHANGELOG.md gitlab_activity/_version.py
+  # Run pre-commit to auto format files
+  - pre-commit install
+  - pre-commit run --all-files || true
+  # Configure mail and name of the user who should be visible in the commit history
+  - git config --global user.email 'release-bot@gitlab.com'
+  - git config --global user.name 'Release Bot'
+  # Dont run pre-commit here
+  - git commit -m 'Bump version to ${NEXT_VERSION_SPECIFIER} & update CHANGELOG.md' --no-verify
+  # Create new tag
+  - git tag ${NEXT_VERSION_SPECIFIER} -m "Release ${NEXT_VERSION_SPECIFIER}"
+
+# Pre commit tests
 pre-commit:
   stage: pretest
   script:
@@ -33,6 +79,7 @@ pre-commit:
   except:
     - tags
 
+# Test to build package
 build-test:
   stage: build
   script:
@@ -44,6 +91,7 @@ build-test:
   except:
     - tags
 
+# Test to build docs
 build-doc:
   stage: build
   extends: .setup_node
@@ -57,6 +105,7 @@ build-doc:
   except:
     - tags
 
+# Unit and functional tests
 tests:
   stage: test
   parallel:
@@ -87,27 +136,16 @@ tests:
   except:
     - tags
 
+# Test to check release steps
 test-release:
-  stage: test
-  before_script:
-    # Install prerequisites
-    - python3 -m pip install pipx
-    - python3 -m pipx ensurepath
-    # distutils has been removed in Python 3.12 and pypiserver needs distutils
-    # So we install setuptools https://docs.python.org/3.12/whatsnew/3.12.html
-    - python3 -m pip install setuptools pypiserver
+  stage: pre-release
+  extends: .setup_prepare_release
+  # We do clone for this test as cached repos might have existing
+  # tags that can fail the job.
+  variables:
+    GIT_STRATEGY: clone
   script:
-    # Build package
-    - pipx run build --outdir dist .
-    # Check dist files
-    - pipx run twine check dist/*
-    # Start a test pypi server
-    - mkdir -p test_registry
-    - pypi-server run -p 8081  -P . -a . -o  -v test_registry &
-    # Sleep for a while for server to start
-    - sleep 30
-    # Upload package to test
-    - pipx run twine upload --repository-url=http://localhost:8081 --user=foo --password=bar dist/*
+    - *prepare_release
   artifacts:
     paths:
       - build/reports/
@@ -115,7 +153,33 @@ test-release:
   except:
     - tags
 
-# Generate docs
+# Test to check publish steps with local PyPi server
+test-publish:
+  stage: pre-release
+  needs:
+    - test-release
+  before_script:
+    # Install prerequisites
+    - pip install git+https://github.com/pypa/hatch
+  script:
+    # Build package
+    - hatch run publish:build-package
+    # Check dist files
+    - hatch run publish:check-package
+    # Start a test pypi server
+    - hatch run publish:start-localpypi &
+    # Sleep for a while for server to start
+    - sleep 30
+    # Upload package to test
+    - hatch run publish:upload-to-localpypi
+  artifacts:
+    paths:
+      - build/reports/
+    expire_in: 1 day
+  except:
+    - tags
+
+# Generate and deploy docs
 pages:
   stage: deploy
   extends: .setup_node
@@ -126,49 +190,6 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - main
-  except:
-    - tags
-
-# Prepare release by tagging and adding entry to changelog
-prepare_release:
-  stage: release
-  when: manual
-  variables:
-    VERSION: minor
-    BRANCH: main
-  before_script:
-    - echo "Preparing release..."
-    # Install hatch and install package
-    - pip install git+https://github.com/pypa/hatch
-    - pip install -e '.[dev]'
-  script:
-    - hatch version ${VERSION}
-    # Get new version
-    - export NEXT_VERSION_SPECIFIER=$(hatch version)
-    # Generate changelog
-    - gitlab-activity --append -o CHANGELOG.md
-    - cat CHANGELOG.md
-    - git add CHANGELOG.md gitlab_activity/_version.py
-    # Run pre-commit to auto format files
-    - pre-commit install
-    - pre-commit run --all-files || true
-    # Configure mail and name of the user who should be visible in the commit history
-    - git config --global user.email 'release-bot@gitlab.com'
-    - git config --global user.name 'Release Bot'
-    # Dont run pre-commit here
-    - git commit -m 'Bump version and update CHANGELOG.md' --no-verify
-    # Create new tag
-    - git tag ${NEXT_VERSION_SPECIFIER} -m "Release ${NEXT_VERSION_SPECIFIER}"
-    # Set remote push URL and push to originating branch
-    - git remote set-url --push origin "https://${GITLAB_CI_USER}:${GITLAB_CI_TOKEN}@${CI_REPOSITORY_URL#*@}"
-    - git push origin HEAD:${CI_COMMIT_REF_NAME} -o ci.skip # Pushes to the same branch as the trigger
-    - git push origin ${NEXT_VERSION_SPECIFIER} # Pushes the tag BUT triggers the CI to run tagged jobs
-  after_script:
-    - echo "Version bumped and Changelog entry added"
-  # Only run on main branch and do not run on tags
-  # Because we create tag in this job
   only:
     - main
   except:
@@ -188,26 +209,59 @@ release:
   only:
     - tags
 
+# Prepare release by tagging and adding entry to changelog
+prepare_release:
+  stage: release
+  when: manual
+  # We do clone for this test as cached repos might have existing
+  # tags that can fail the job
+  variables:
+    GIT_STRATEGY: clone
+  extends: .setup_prepare_release
+  script:
+    - *prepare_release
+    # Set remote push URL and push to originating branch
+    - git remote set-url --push origin "https://${GITLAB_CI_USER}:${GITLAB_CI_TOKEN}@${CI_REPOSITORY_URL#*@}"
+    - git push origin HEAD:${CI_COMMIT_REF_NAME} -o ci.skip # Pushes to the same branch as the trigger
+    - git push origin ${NEXT_VERSION_SPECIFIER} # Pushes the tag BUT triggers the CI to run tagged jobs
+  # Only run on main branch and do not run on tags
+  # Because we create tag in this job
+  only:
+    - main
+  except:
+    - tags
+
 # Publish the release to PyPI
 # This job first publishes to test server and then publish to
 # PyPI server upstream
+# NOTE: Before we were attempting to run this on tags job. This
+# WONT WORK as protected variables are ONLY available on
+# PROTECTED TAGS. So we need to run this job on default protected
+# branch
 publish:
   stage: release
   needs:
-    - release
+    - prepare_release
+  # Use clone strategy to be able to checkout "latest" main
+  variables:
+    GIT_STRATEGY: clone
   before_script:
     - echo "Preparing publish job..."
+    # This is crucial. If not the commit we made from previous job
+    # will not be available here as CI will always checkout the commit
+    # that triggered the job
+    - git fetch origin main
+    - git checkout main
     # Install prerequisites
-    - python3 -m pip install pipx
-    - python3 -m pipx ensurepath
+    - pip install git+https://github.com/pypa/hatch
   script:
     # Build package
-    - pipx run build --outdir dist .
+    - hatch run publish:build-package
     # Check dist files
-    - pipx run twine check dist/*
-    # Now if everything went well till this point, publish to PyPI
-    - pipx run twine upload --user=${TWINE_USERNAME} --password=${TWINE_PASSWORD} dist/*
-  after_script:
-    - echo "Published to PyPI"
+    - hatch run publish:check-package
+    # Upload package to test
+    - hatch run publish:upload-to-pypi
   only:
+    - main
+  except:
     - tags
