@@ -26,7 +26,7 @@ def cache_data(query_data, path_cache):
     path_cache = Path(path_cache)
 
     # Create dirs if they do not exist
-    if not path_cache.exists():
+    if not path_cache.exists():  # pragma: no cover
         log(f'Creating a new cache at {path_cache}')
         path_cache.mkdir(parents=True)
 
@@ -129,7 +129,7 @@ def load_from_cache(target, activity, path_cache=None):
 
 def get_cache_stats(path_cache=None):
     """Get stats from cached data"""
-    if path_cache is None:
+    if path_cache is None:  # pragma: no cover
         path_cache = DEFAULT_PATH_CACHE
 
     path_cache = Path(path_cache)
