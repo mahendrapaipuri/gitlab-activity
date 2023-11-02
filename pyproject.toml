@@ -24,7 +24,6 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
     "click",
@@ -35,8 +34,8 @@ dependencies = [
     "pandas",
     "python-dateutil ; python_version < '3.12'",
     # NOTE: https://github.com/dateutil/dateutil/issues/1314
-    # Until they make a new release for Python 3.12
-    "python-dateutil @ git+https://github.com/dateutil/dateutil ; python_version == '3.12'",
+    # Until they make a new release for Python 3.12 we dont support 3.12
+    # "python-dateutil @ git+https://github.com/dateutil/dateutil ; python_version == '3.12'",
     "requests",
     "tqdm",
     "jsonschema"
@@ -95,7 +94,6 @@ python = [
     "3.9",
     "3.10",
     "3.11",
-    "3.12",
 ]
 
 [tool.hatch.envs.docs]
