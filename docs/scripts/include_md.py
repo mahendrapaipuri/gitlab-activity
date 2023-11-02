@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 # Root of the repository
-repo_root = Path(__file__).parent.parent.parent.resolve()
+repo_root = Path(__file__).resolve().parent.parent.parent.resolve()
 
 # Docusaurus docs path
 docs_path = repo_root.joinpath('docs', 'website', 'docs')
