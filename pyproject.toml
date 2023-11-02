@@ -109,6 +109,27 @@ dependencies = [
 build = "cd docs/website && npm install && npm run build"
 start = "cd docs/website && npm run start"
 
+[tool.hatch.envs.publish]
+type = "virtual"
+skip-install = true
+dependencies = [
+    "pypiserver",
+    "setuptools",
+    "twine",
+    "build",
+]
+
+[tool.hatch.envs.publish.scripts]
+build-package = "python -m build --outdir dist ."
+check-package = "twine check dist/*"
+start-localpypi = [
+    "mkdir -p test_registry",
+    "pypi-server run -p 8081  -P . -a . -o  -v test_registry",
+]
+upload-to-localpypi = "twine upload --repository-url=http://localhost:8081 --user=foo --password=bar dist/*"
+upload-to-testpypi = "twine upload --repository=testpypi --user={env:TWINE_USERNAME} --password={env:TWINE_PASSWORD} dist/*"
+upload-to-pypi = "twine upload --user={env:TWINE_USERNAME} --password={env:TWINE_PASSWORD} dist/*"
+
 [tool.check-wheel-contents]
 ignore = ["W002"]  # Triggers on __init__.py's
 
