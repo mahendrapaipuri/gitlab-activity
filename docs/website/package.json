@@ -7,7 +7,7 @@
     "doc:build": "docusaurus build",
     "doc:swizzle": "docusaurus swizzle",
     "doc:deploy": "docusaurus deploy",
-    "sphinx": "cd ../sphinx && make clean && make html && cp -r build/html ../website/static/api",
+    "sphinx": "cd ../sphinx && make clean && make html && cp -r build/html/ ../website/static/api",
     "copy:md": "python ../scripts/include_md.py",
     "prebuilds": "npm run sphinx && npm run copy:md",
     "start": "npm run prebuilds && npm run doc:start",

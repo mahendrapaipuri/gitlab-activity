@@ -4,6 +4,11 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
+// Define variables for siteUrl and baseUrl so we can use them
+const siteUrl = 'http://localhost:3000'; // 'https://mahendrapaipuri.gitlab.io'
+const baseUrl = '/gitlab-activity';
+const repoUrl = 'https://gitlab.com/mahendrapaipuri/gitlab-activity';
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'gitlab-activity',
@@ -11,10 +16,10 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://mahendrapaipuri.gitlab.io',
+  url: siteUrl,
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/gitlab-activity',
+  baseUrl: baseUrl,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -42,15 +47,13 @@ const config = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/tree/main/docs/website',
+          editUrl: `${repoUrl}/-/tree/main/docs/website`,
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/tree/main/docs/website',
+          editUrl: `${repoUrl}/-/tree/main/docs/website`,
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -85,13 +88,13 @@ const config = {
             label: 'Getting Started',
           },
           {
-            href: `https://mahendrapaipuri.gitlab.io/gitlab-activity/api/`,
+            href: `${siteUrl}${baseUrl}/api/`,
             label: 'API',
             position: 'left',
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
-            href: 'https://gitlab.com/mahendrapaipuri/gitlab-activity',
+            href: `${repoUrl}`,
             label: 'GitLab',
             position: 'right',
           },
@@ -105,11 +108,11 @@ const config = {
             items: [
               {
                 label: 'Issues',
-                href: 'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/issues',
+                href: `${repoUrl}/-/issues`,
               },
               {
                 label: 'Merge Requests',
-                href: 'https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests',
+                href: `${repoUrl}/-/merge_requests`,
               },
             ],
           },
@@ -122,7 +125,7 @@ const config = {
               },
               {
                 label: 'GitLab',
-                href: 'https://gitlab.com/mahendrapaipuri/gitlab-activity',
+                href: `${repoUrl}`,
               },
             ],
           },
