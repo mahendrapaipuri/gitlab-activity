@@ -1,11 +1,13 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
+require('dotenv').config();
+
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 // Define variables for siteUrl and baseUrl so we can use them
-const siteUrl = 'http://localhost:3000'; // 'https://mahendrapaipuri.gitlab.io'
+const siteUrl = process.env.SITE_URL || 'https://mahendrapaipuri.gitlab.io';
 const baseUrl = '/gitlab-activity';
 const repoUrl = 'https://gitlab.com/mahendrapaipuri/gitlab-activity';
 
