@@ -21,14 +21,14 @@ def cache_data(query_data, path_cache):
         If string cache will be stored at this path
     """
     # Use default path if no specific path is given
-    if path_cache is True:
+    if path_cache is True:  # pragma: no cover
         path_cache = DEFAULT_PATH_CACHE
     path_cache = Path(path_cache)
 
     # Create dirs if they do not exist
     if not path_cache.exists():
         log(f'Creating a new cache at {path_cache}')
-        path_cache.mkdir()
+        path_cache.mkdir(parents=True)
 
     for (org, repo), _ in query_data.groupby(['org', 'repo']):
         # Create a subdir for each org/repo
@@ -86,7 +86,7 @@ def load_from_cache(target, activity, path_cache=None):
         When path_cache file does not exist
     """
     # Checks for correctness and existence of cache
-    if path_cache is None:
+    if path_cache is None:  # pragma: no cover
         path_cache = DEFAULT_PATH_CACHE
     if activity not in ALLOWED_ACTIVITIES:
         msg = f'Activity must be one of {",".join(ALLOWED_ACTIVITIES)}, not {activity}'
@@ -106,7 +106,7 @@ def load_from_cache(target, activity, path_cache=None):
     if not path_cache_org.exists():
         msg = f'Could not find cache for org: {org}'
         raise FileNotFoundError(msg)
-    if repo is None:
+    if repo is None:  # pragma: no cover
         repos = [
             ii
             for ii in path_cache_org.glob('*')
@@ -119,7 +119,7 @@ def load_from_cache(target, activity, path_cache=None):
     data = []
     for irepo in repos:
         path_cache_repo = path_cache_org.joinpath(irepo)
-        if not path_cache_repo.exists():
+        if not path_cache_repo.exists():  # pragma: no cover
             msg = f'Could not find cache for org/repo: {org}/{repo}'
             raise FileNotFoundError(msg)
         path_csv = path_cache_repo.joinpath(f'{activity}.csv')

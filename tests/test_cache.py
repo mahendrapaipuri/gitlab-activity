@@ -30,13 +30,21 @@ DATA_PATH = Path('tests').resolve().joinpath('resources', 'data')
 )
 def test_cache_data(tmpdir, df, targets):
     """Test cache_data given query_data"""
-    path_tmp = Path(tmpdir)
+    path_tmp = Path(tmpdir).joinpath('activity-cache')
     data_path = DATA_PATH.joinpath(df)
     # Read query data
     query_data = pd.read_pickle(data_path)
 
+    for activity in ['issues', 'merge_requests']:
+        for target in targets:
+            # Copy csv data to path_cache
+            src = DATA_PATH.joinpath(f'{activity}.csv')
+            dst = path_tmp.joinpath(target, f'{activity}.csv')
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, dst)
+
     # Cache data
-    cache_data(query_data, path_cache=tmpdir)
+    cache_data(query_data, path_cache=path_tmp)
 
     # Check if csv files exists
     for target in targets:
