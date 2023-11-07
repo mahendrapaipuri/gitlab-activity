@@ -99,11 +99,13 @@ python = [
 [tool.hatch.envs.docs]
 type = "virtual"
 dependencies = [
+    "importlib",
     "sphinx",
 ]
 
 [tool.hatch.envs.docs.scripts]
 build = "cd docs/website && npm install && npm run build"
+serve = "cd docs/website && npm run serve"
 start = "cd docs/website && npm install && npm run start"
 
 [tool.hatch.envs.publish]

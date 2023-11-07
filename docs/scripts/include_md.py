@@ -34,4 +34,5 @@ for f in docs_path.glob('**/*.md'):
     new_content = format(f'{content}\n\n{marker}\n\n{new_content}')
 
     # Finally write the new content back to f
+    print(f'Updating md file at {f}')  # noqa: T201
     f.write_text(new_content, encoding='utf-8')
