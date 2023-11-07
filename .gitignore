@@ -110,3 +110,6 @@ docs/tags_list.txt
 # All node and npm related stuff
 **/node_modules
 **/.yarn
+
+# Ignore md file for CLI options
+main.md
