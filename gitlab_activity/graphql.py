@@ -283,8 +283,8 @@ class GitLabGraphQlQuery:
 
             # Make query string
             scope_query = f'{self.scope} (fullPath: \"{target}\")'
-            break_from_target = False
             for search_type, search_query in self.search_queries.items():
+                break_from_query = False
                 for ipage in range(n_pages):
                     gitlab_search_query = search_query[:-1] + f', first: {n_per_page})'
                     if ipage != 0:
@@ -307,7 +307,7 @@ class GitLabGraphQlQuery:
                                 f'Found no entries for {search_type} {self.activity} '
                                 f'query on target {target}'
                             )
-                            break_from_target = True
+                            break_from_query = True
                             break
 
                         n_pages = int(
@@ -326,7 +326,7 @@ class GitLabGraphQlQuery:
                         )
 
                     # If there are no entries break from this target
-                    if break_from_target:
+                    if break_from_query:
                         break
 
                     # Add the JSON to the raw data list
