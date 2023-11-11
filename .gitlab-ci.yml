@@ -158,6 +158,10 @@ tests:
 test-update-changelog:
   stage: pre-release
   extends: .setup_hatch
+  # We do clone for this test as cached repos might have existing
+  # tags that can fail the job.
+  variables:
+    GIT_STRATEGY: clone
   script:
     - *add_changelog_entry
   after_script:
@@ -248,6 +252,10 @@ release:
 update_changelog:
   stage: release
   extends: .setup_hatch
+  # We do clone for this test as cached repos might have existing
+  # tags that can fail the job
+  variables:
+    GIT_STRATEGY: clone
   script:
     - *add_changelog_entry
     # Set remote push URL and push to originating branch
