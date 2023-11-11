@@ -771,7 +771,5 @@ def insert_entry(changelog, entry):
         new_entry = f'{START_MARKER}\n\n{entry}\n\n{END_MARKER}'
 
     # Finally append head and previous to new_entry
-    changelog = '\n\n'.join(
-        [head.strip('\n'), new_entry.strip('\n'), previous.strip('\n')]
-    )
+    changelog = '\n\n'.join([head.strip('\n'), new_entry.strip('\n'), previous])
     return format(changelog)
