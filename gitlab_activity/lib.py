@@ -18,6 +18,7 @@ from gitlab_activity.graphql import GitLabGraphQlQuery
 from gitlab_activity.utils import get_all_tags
 from gitlab_activity.utils import get_datetime_and_type
 from gitlab_activity.utils import get_latest_tag
+from gitlab_activity.utils import get_next_version_specifier
 from gitlab_activity.utils import log
 from gitlab_activity.utils import parse_target
 
@@ -421,13 +422,13 @@ def generate_activity_md(
     if since is None:
         since = get_latest_tag(domain, target, targetid, auth)
 
-        # If we failed to get latest_tag raise an exception
-        if since is None:
-            msg = (
-                f'Failed to get latest tag for target {target}. '
-                f'Please provide a valid datestring using --since/-s option'
-            )
-            raise RuntimeError(msg)
+    # If we failed to get latest_tag raise an exception
+    if since is None:
+        msg = (
+            f'Failed to get latest tag/MR for target {target}. '
+            f'Please provide a valid datestring using --since/-s option'
+        )
+        raise RuntimeError(msg)
 
     # Grab the data according to our query
     data = get_activity(
@@ -435,10 +436,6 @@ def generate_activity_md(
     )
     if data.empty:
         return None
-
-    # Collect authors of comments on issues/MRs that they didn't open for our
-    # attribution list
-    # all_contributors = []
 
     # add column for participants in each issue (not just original author)
     data['contributors'] = [[]] * len(data)
@@ -628,11 +625,11 @@ def generate_activity_md(
     changelog_url = f'https://{domain}/{target}/-/compare/{since_ref}...{until_ref}?from_project_id={targetid}&straight=false'
 
     # Build the Markdown
-    # If there is a env var NEXT_VERSION_SPECIFIER, use it in the header
-    # Typically we can set it in CI pipelines that do releases
-    if os.environ.get('NEXT_VERSION_SPECIFIER'):
+    # If next version specifier is found use it
+    next_version = get_next_version_specifier()
+    if next_version:
         md = [
-            f"{extra_head}# {os.environ.get('NEXT_VERSION_SPECIFIER')} ({data.until_dt:%Y-%m-%d})",  # noqa: E501
+            f'{extra_head}# {next_version} ({data.until_dt:%Y-%m-%d})',
             '',
         ]
     else:
@@ -641,12 +638,21 @@ def generate_activity_md(
         until_dt = f'{data.until_dt:%Y-%m-%d}'
         # If it is a project, add branch into dates
         if target_type == 'project':
-            since_dt = f'{branch}@{{{since_dt}}}'
-            until_dt = f'{branch}@{{{until_dt}}}'
-        md = [
-            f'{extra_head}# {since_dt}...{until_dt}',
-            '',
-        ]
+            # If we are in CI and not testing in CI use Unreleases heading
+            if os.environ.get('GITLAB_CI') and os.environ.get('PYTEST') is None:
+                heading = f'{extra_head}# Unreleased ({until_dt})'
+            else:
+                heading = f'{extra_head}# {branch}@{{{since_dt}}}...{branch}@{{{until_dt}}}'  # noqa: E501
+            md = [
+                heading,
+                '',
+            ]
+        else:
+            md = [
+                f'{extra_head}# {since_dt}...{until_dt}',
+                '',
+            ]
+
     # Add full changelog for only projects and do not add it for categories
     if (
         target_type == 'project'
@@ -678,7 +684,6 @@ def generate_activity_md(
         ]
         contributor_md = ' | '.join(all_contributor_links)
         md += ['']
-        # TODO: Add link to docs when available
         md += [
             f'{extra_head}{activity_head}## [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)'
         ]
@@ -746,11 +751,27 @@ def insert_entry(changelog, entry):
     str
         Updated changelog content after appending entry.
     """
-    # Test if we are augmenting an existing changelog entry (for new PRs)
-    # Preserve existing PR entries since we may have formatted them
+    # Whether it is a release entry or unrelease entry
+    release_entry = False
+    if get_next_version_specifier():
+        release_entry = True
+
     # Strip new lines in entry
     entry = entry.strip('\n')
-    new_entry = f'{START_MARKER}\n\n{entry}\n\n{END_MARKER}'
-    changelog = changelog.replace(END_MARKER, "")
-    changelog = changelog.replace(START_MARKER, new_entry)
+
+    # Split existing changelog at START_MARKER and END_MARKER
+    head, body = changelog.split(START_MARKER)
+    # Split body at END_MARKER to get previous entries
+    _, previous = body.split(END_MARKER)
+
+    # Based on release_entry make new entry
+    if release_entry:
+        new_entry = f'{START_MARKER}\n{END_MARKER}\n\n{entry}'
+    else:
+        new_entry = f'{START_MARKER}\n\n{entry}\n\n{END_MARKER}'
+
+    # Finally append head and previous to new_entry
+    changelog = '\n\n'.join(
+        [head.strip('\n'), new_entry.strip('\n'), previous.strip('\n')]
+    )
     return format(changelog)

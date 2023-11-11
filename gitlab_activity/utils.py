@@ -16,7 +16,6 @@ import toml
 from importlib_resources import files
 
 PYPROJECT = Path('pyproject.toml')
-GITLAB_ACTIVITY = Path('.gitlab-activity.toml')
 PACKAGE_JSON = Path('package.json')
 
 SCHEMA = files('gitlab_activity').joinpath('schema.json').read_text()
@@ -39,12 +38,6 @@ class CustomParamType(click.ParamType):
             self.fail(
                 'Failed to cast into list using json.loads for'
                 f'{value!r} of type {type(value).__name__}',
-                param,
-                ctx,
-            )
-        except Exception as err:
-            self.fail(
-                f'Failed to convert {value!r} into a valid list due to {err!r}',
                 param,
                 ctx,
             )
@@ -88,10 +81,6 @@ def read_config(path):
         config = toml.loads(Path(path).read_text(encoding='utf-8'))
         log(f'gitlab-activity configuration loaded from {Path(path)}.')
 
-    if GITLAB_ACTIVITY.exists() and not config:
-        config = toml.loads(GITLAB_ACTIVITY.read_text(encoding='utf-8'))
-        log(f'gitlab-activity configuration loaded from {GITLAB_ACTIVITY}.')
-
     if PYPROJECT.exists():
         data = toml.loads(PYPROJECT.read_text(encoding='utf-8'))
         pyproject_config = data.get('tool', {}).get('gitlab-activity')
@@ -133,6 +122,28 @@ def print_config(config):
     # Redact auth token
     config['auth'] = '*****'
     log(json.dumps(config, indent=2))
+
+
+def get_next_version_specifier():
+    """Return next version specifier by checking environment variables
+
+    The following environment variables will be checked in order and version
+    is returned
+
+    - NEXT_VERSION_SPECIFIER
+    - CI_COMMIT_TAG
+
+    Returns
+    -------
+    version : str | None
+        Version string
+    """
+    for env_var in ['NEXT_VERSION_SPECIFIER', 'CI_COMMIT_TAG']:
+        if os.environ.get(env_var):
+            return os.environ.get(env_var)
+
+    # If not found return None
+    return None
 
 
 def get_auth_token():
@@ -394,11 +405,59 @@ def get_latest_tag(domain, target, targetid, auth):
     str | None
         Latest tag or None
     """
-    tags = get_all_tags(domain, target, targetid, auth)
-    if tags:
+    try:
+        tags = get_all_tags(domain, target, targetid, auth)
+    except RuntimeError:
+        log(f'No tags found for the target {target}')
+        return None
+    else:
         return tags[0][1]
-    log(f'No tags found for the target {target}')
-    return None
+
+
+def get_latest_mr(domain, target, auth):
+    """Return latest MR of a target via API call
+
+    Parameters
+    ----------
+    domain : str
+        Domain of the target repository
+    target : str
+        Sanitized target after stripping elements like 'http(s)', '.git'
+    auth : str
+        An authentication token for GitLab.
+
+    Returns
+    -------
+    str | None
+        Latest MR or None
+    """
+    # Get all projects from graphql query
+    query = f"""{{
+  project (fullPath: "{target}") {{
+    mergeRequests(first: 5, state: merged, sort: MERGED_AT_DESC) {{
+      nodes {{
+        iid
+        mergeCommitSha
+        mergedAt
+      }}
+    }}
+  }}
+}}"""
+
+    try:
+        data = _make_gql_request(domain, query, auth)
+        # Get project nodes
+        merge_requests = [
+            (p['mergeCommitSha'], p['mergedAt'])
+            for p in data['project']['mergeRequests']['nodes']
+        ]
+    except (requests.exceptions.HTTPError, KeyError):
+        merge_requests = []
+    finally:
+        if not merge_requests:
+            msg = f'Failed to MRs for target {target}'
+            raise RuntimeError(msg)
+    return merge_requests[0][0]
 
 
 def get_namespace_projects(domain, namespace, auth):
@@ -521,6 +580,10 @@ def _make_gql_request(domain, query, auth):
     # Make request
     response = requests.post(url, json={'query': query}, headers=headers)
     response.raise_for_status()
+
+    # Check if data key exists
+    if 'data' not in response.json():
+        return {}
     # Return data
     return response.json()['data']
 

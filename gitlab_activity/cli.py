@@ -6,6 +6,7 @@ import click
 
 from gitlab_activity import DEFAULT_BOT_USERS
 from gitlab_activity import DEFAULT_CATEGORIES
+from gitlab_activity import END_MARKER
 from gitlab_activity import START_MARKER
 from gitlab_activity.git import get_remote_ref
 from gitlab_activity.git import git_installed_check
@@ -289,6 +290,7 @@ def main(**kwargs):
             log(f'Output file at {changelog_path} does not exist. Creating one...')
             entry = f"""# Changelog
 {START_MARKER}
+{END_MARKER}
 """
             Path(changelog_path).write_text(entry, encoding='utf-8')
 
@@ -302,13 +304,22 @@ def main(**kwargs):
             print_config(kwargs)
             sys.exit(1)
 
-        if changelog.find(START_MARKER) != changelog.rfind(START_MARKER):
+        if changelog.find(START_MARKER) != changelog.rfind(
+            START_MARKER
+        ) or changelog.find(END_MARKER) != changelog.rfind(END_MARKER):
             log(
                 f'More than one insert markers are found in changelog at '
                 f'{changelog_path}. Please remove duplicates. Exiting...'
             )
             print_config(kwargs)
             sys.exit(1)
+
+        if END_MARKER not in changelog:
+            head, tail = changelog.split(START_MARKER)
+            head = head.strip('\n')
+            tail = tail.strip('\n')
+            changelog = format(f'{head}\n\n{START_MARKER}\n{END_MARKER}\n\n{tail}')
+            Path(changelog_path).write_text(changelog, encoding='utf-8')
 
     # Ensure since is provided if group is set as target
     _, _, target_type, _ = parse_target(kwargs['target'], kwargs['auth'])
