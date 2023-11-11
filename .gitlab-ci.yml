@@ -55,7 +55,9 @@ variables:
   - git add CHANGELOG.md gitlab_activity/_version.py
   # Run pre-commit to auto format files
   - pre-commit install
-  - pre-commit run --all-files || true
+  - pre-commit run --all-files --show-diff-on-failure || true
+  # Add potentially changed files
+  - git add CHANGELOG.md || true
   # Configure mail and name of the user who should be visible in the commit history
   - git config --global user.email 'release-bot@gitlab.com'
   - git config --global user.name 'Release Bot'
@@ -71,7 +73,9 @@ variables:
   - git add CHANGELOG.md
   # Run pre-commit to auto format files
   - pre-commit install
-  - pre-commit run --all-files || true
+  - pre-commit run --all-files --show-diff-on-failure || true
+  # Add potentially changed files
+  - git add CHANGELOG.md || true
   # Configure mail and name of the user who should be visible in the commit history
   - git config --global user.email 'release-bot@gitlab.com'
   - git config --global user.name 'Release Bot'
@@ -156,6 +160,8 @@ test-update-changelog:
   extends: .setup_hatch
   script:
     - *add_changelog_entry
+  after_script:
+    - cp CHANGELOG.md build/reports/
   artifacts:
     paths:
       - build/reports/
@@ -173,6 +179,8 @@ test-release:
     GIT_STRATEGY: clone
   script:
     - *prepare_release
+  after_script:
+    - cp CHANGELOG.md build/reports/
   artifacts:
     paths:
       - build/reports/
