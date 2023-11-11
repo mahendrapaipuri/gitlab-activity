@@ -8,6 +8,7 @@ title: Changelog
 # Changelog
 
 <!-- <START NEW CHANGELOG ENTRY> -->
+<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.0 (2023-11-02)
 
@@ -59,5 +60,3 @@ title: Changelog
 ### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
 
 [@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
-
-<!-- <END NEW CHANGELOG ENTRY> -->

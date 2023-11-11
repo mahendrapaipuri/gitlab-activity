@@ -68,6 +68,8 @@ gitlab-activity -t ns/repo --append --output CHANGELOG.md
 
 ## Using in CI
 
+### Updating Changelog at new release
+
 The repository of `gitlab-activity` uses the tool to generate its own
 [changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/blob/main/CHANGELOG.md)
 file. Here is the excerpt of the CI job file that does the job of updating changelog
@@ -132,6 +134,53 @@ a new tag and eventually push them to remote.
 The tag commit will trigger a new CI in the current project which will eventually
 publish the package to PyPI. Notice that in the current job show above, we add a rule
 to skip that job for tags using `except:` keyword to avoid infinite loop.
+
+### Updating Changelog after each MR
+
+It is possible to update Changelog file after each successful MR event. Normally, the
+tool updates the Changelog entry with "Unreleased (date)" header. If user configure
+a CI job to run on the merge commit and update the Changelog on that CI run, the
+Changelog file will be updated.
+
+It is important to put the start marker `<!-- <START NEW CHANGELOG ENTRY> -->` at the
+top of the Changelog file and end marker `<!-- <END NEW CHANGELOG ENTRY> -->` just
+before the last stable release. An example can be as follows:
+
+```
+# Changelog
+
+<!-- <START NEW CHANGELOG ENTRY> -->`
+
+## Unreleased (2023-11-10)
+
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/6b6d4d9b241e3819aad78245a7ef562a5710b547...083709e5d70d227cc25b0f8bc228cbc64da8ef42?from_project_id=51534402&straight=false))
+
+### Documentation improvements
+
+- Add CLI options to documentation [!17](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/17) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
+
+[@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
+## 0.1.0 (2023-11-02)
+
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/6c710c92265819a8a2d1a59317b9c7e9d0d47fe7...fcc20006f29d94bbe20cbb139a07ff117c9fa566?from_project_id=51534402&straight=false))
+
+### New features added
+
+- Add release workflows in CI and get first and last commits when no tags found [!12](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/12) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+- Add source code [!1](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/1) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
+
+[@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
+
+```
+
+After each MR event, the entry between start marker and end marker will be updated with the most recent MR. Once the release is made by tagging the repository, the header will be changed to tag name and both start and end markers will be moved to the top of the file for adding next stream of MRs in the Changelog file.
 
 ## Contributors list
 

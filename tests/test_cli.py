@@ -6,6 +6,7 @@ from subprocess import run
 
 from pytest import mark
 
+from gitlab_activity import END_MARKER
 from gitlab_activity import START_MARKER
 
 # Repo used for tests
@@ -111,6 +112,121 @@ def test_cli_local_latest_activity(tmpdir, file_regression):
     # Remove first line which will emit date that will always change
     md = '\n'.join(md.splitlines()[1:])
     file_regression.check(md, extension='.md')
+
+
+@mark.requires_internet
+def test_cli_release_entry(tmpdir, file_regression):
+    """Test that entry in existing changelog formatted properly on release"""
+    path_tmp = Path(tmpdir)
+    path_output = path_tmp.joinpath('out.md')
+    content = f"""
+# Changelog
+{START_MARKER}
+## Unreleased
+
+### foo
+
+- foo-unr-1
+- foo-unr-2
+
+### bar
+
+- bar-unr-1
+- bar-unr-2
+{END_MARKER}
+
+## v3.0.0
+
+### foo
+
+- foo1
+- foo2
+
+### bar
+
+- bar1
+- bar2
+
+## v2.0.0
+
+### foo
+
+- foo1
+- foo2
+
+### bar
+
+- bar1
+- bar2
+"""
+    path_output.write_text(content, encoding='utf-8')
+
+    # Get latest activity of local repo
+    cmd = f'gitlab-activity -c {CONFIG_PATH} -t {NS}/{REPO} --append --heading-level=2 -o {path_output}'
+    env = os.environ.copy()
+    env.update({'NEXT_VERSION_SPECIFIER': 'v3.1.0'})
+    run(cmd.split(), check=True, env=env)
+    md = path_output.read_text()
+    assert 'v3.1.0' in md
+    # file_regression.check(md, extension='.md')
+
+
+@mark.requires_internet
+def test_cli_unrelease_entry(tmpdir, file_regression):
+    """Test that entry in existing changelog formatted properly on unreleased entry"""
+    path_tmp = Path(tmpdir)
+    path_output = path_tmp.joinpath('out.md')
+    content = f"""
+# Changelog
+{START_MARKER}
+## Unreleased
+
+### foo
+
+- foo-unr-1
+- foo-unr-2
+
+### bar
+
+- bar-unr-1
+- bar-unr-2
+{END_MARKER}
+
+## v3.0.0
+
+### foo
+
+- foo1
+- foo2
+
+### bar
+
+- bar1
+- bar2
+
+## v2.0.0
+
+### foo
+
+- foo1
+- foo2
+
+### bar
+
+- bar1
+- bar2
+"""
+    path_output.write_text(content, encoding='utf-8')
+
+    # Get latest activity of local repo
+    cmd = f'gitlab-activity -c {CONFIG_PATH} -t {NS}/{REPO} --append --heading-level=2 -o {path_output}'
+    env = os.environ.copy()
+    del env['PYTEST']
+    env.update({'GITLAB_CI': 'true'})
+    run(cmd.split(), check=True, env=env)
+    md = path_output.read_text()
+    assert 'Unreleased' in md
+    # file_regression.check(md, extension='.md')
 
 
 @mark.requires_internet
@@ -286,14 +402,23 @@ def test_cli_append_output_without_marker(tmpdir):
     assert 'Missing insert marker' in completed.stderr.decode()
 
 
-def test_cli_append_output_with_multiple_markers(tmpdir):
+@mark.parametrize(
+    'marker',
+    [
+        START_MARKER,
+        END_MARKER,
+    ],
+)
+def test_cli_append_output_with_multiple_markers(tmpdir, marker):
     """Test if we show error when append is used and multiple markers in file"""
     path_tmp = Path(tmpdir)
     path_output = path_tmp.joinpath('out.md')
     content = f"""
-{START_MARKER}
 # Changelog
 {START_MARKER}
+{marker}
+{marker}
+{END_MARKER}
 """
     path_output.write_text(content, encoding='utf-8')
 
@@ -303,6 +428,26 @@ def test_cli_append_output_with_multiple_markers(tmpdir):
 
     assert completed.returncode == 1
     assert 'More than one insert markers are found' in completed.stderr.decode()
+
+
+def test_cli_append_output_with_only_start_marker(tmpdir):
+    """Test if we add end marker when only start marker is found"""
+    path_tmp = Path(tmpdir)
+    path_output = path_tmp.joinpath('out.md')
+    content = f"""
+# Changelog
+{START_MARKER}
+# foo
+# bar
+"""
+    path_output.write_text(content, encoding='utf-8')
+
+    # Invoke cmd
+    cmd = f'gitlab-activity -c {CONFIG_PATH} --print-config --append --output={path_output}'
+    completed = run(cmd.split(), capture_output=True)
+
+    assert completed.returncode == 0
+    assert END_MARKER in path_output.read_text(encoding='utf-8')
 
 
 @mark.requires_internet

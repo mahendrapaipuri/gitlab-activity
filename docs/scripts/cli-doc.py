@@ -21,6 +21,7 @@ md_base_template = """
 ```
 
 ## Options
+
 {options}
 
 ## CLI Help
@@ -77,13 +78,12 @@ def dump_helper(base_command, docs_dir):
             usage=usage,
             options="\n".join(
                 [
-                    f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}: \n"
-                    f"  * Type: {opt.get('type')} \n"
-                    f"  * Default: `{str(opt.get('default')).lower()}`\n"
-                    f"  * Usage: `{opt.get('usage')}`\n"
+                    f"- `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}:\n"
+                    f"  - Type: {opt.get('type')}\n"
+                    f"  - Default: `{str(opt.get('default')).lower()}`\n"
+                    f"  - Usage: `{opt.get('usage')}`\n"
                     "\n"
                     f"{opt.get('help') or ''}\n"
-                    f"\n"
                     for opt_name, opt in options.items()
                 ]
             ),

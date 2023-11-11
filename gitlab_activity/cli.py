@@ -6,6 +6,7 @@ import click
 
 from gitlab_activity import DEFAULT_BOT_USERS
 from gitlab_activity import DEFAULT_CATEGORIES
+from gitlab_activity import END_MARKER
 from gitlab_activity import START_MARKER
 from gitlab_activity.git import get_remote_ref
 from gitlab_activity.git import git_installed_check
@@ -52,17 +53,17 @@ def configure(ctx, _, filename):
     By default, config file .gitlab-activity.yaml in current directory will be
     used if it exists. The configuration also supports
 
-    - pyproject.toml within section [tool.gitlab-activity]
+    - `pyproject.toml` within section `[tool.gitlab-activity]`
 
-    - package.json within gitlab-activity section
+    - `package.json` within `gitlab-activity` key
 
     The order of priority of loading configuration file is as follows:
 
-    - .gitlab-activity.yaml
+    - `.gitlab-activity.yaml`
 
-    - pyproject.toml
+    - `pyproject.toml`
 
-    - package.json
+    - `package.json`
 
     Configuration **will not** be merged from different files. All configuration
     will be loaded from the first file that is found in the current directory.
@@ -84,7 +85,7 @@ def configure(ctx, _, filename):
     '--target',
     type=str,
     help="""The GitLab organization/repo for which you want to grab recent activity
-    [issues/merge_requests]. Can either be *just* an organization (e.g., `gitlab-org`),
+    [issues/merge_requests]. Can either be _just_ an organization (e.g., `gitlab-org`),
     or a combination organization and repo (e.g., `gitlab-org/gitlab-docs`).
     If the former, all repositories for that org will be used. If the latter,
     only the specified repository will be used.
@@ -116,7 +117,7 @@ def configure(ctx, _, filename):
     '--since',
     type=str,
     help="""Return activity since this date or git reference.
-    Can be any string that is parsed with dateutil.parser.parse. If None, activity
+    Can be any string that is parsed with `dateutil.parser.parse`. If None, activity
     since latest tag will be reported.""",
     default=None,
     show_default=True,
@@ -127,7 +128,7 @@ def configure(ctx, _, filename):
     '--until',
     type=str,
     help="""Return activity until this date or git reference.
-    Can be any string that is parsed with dateutil.parser.parse. If None, today's
+    Can be any string that is parsed with `dateutil.parser.parse`. If None, today's
     date will be used.""",
     default=None,
     show_default=True,
@@ -141,7 +142,7 @@ def configure(ctx, _, filename):
 
     This option can be passed multiple times, e.g.,
 
-    gitlab-activity --activity issues --activity merge_requests
+    `gitlab-activity --activity issues --activity merge_requests`
 
     By default only merge_requests activity will be returned.""",
     default=['merge_requests'],
@@ -224,7 +225,7 @@ def configure(ctx, _, filename):
     '--cache',
     is_flag=True,
     help="""Whether to cache activity data in CSV files. The data files can be
-    found at ~/.cache/gitlab-activity-cache folder organized based on org/repo.""",
+    found at `~/.cache/gitlab-activity-cache` folder organized based on org/repo.""",
     default=False,
     show_default=True,
 )
@@ -289,6 +290,7 @@ def main(**kwargs):
             log(f'Output file at {changelog_path} does not exist. Creating one...')
             entry = f"""# Changelog
 {START_MARKER}
+{END_MARKER}
 """
             Path(changelog_path).write_text(entry, encoding='utf-8')
 
@@ -302,13 +304,22 @@ def main(**kwargs):
             print_config(kwargs)
             sys.exit(1)
 
-        if changelog.find(START_MARKER) != changelog.rfind(START_MARKER):
+        if changelog.find(START_MARKER) != changelog.rfind(
+            START_MARKER
+        ) or changelog.find(END_MARKER) != changelog.rfind(END_MARKER):
             log(
                 f'More than one insert markers are found in changelog at '
                 f'{changelog_path}. Please remove duplicates. Exiting...'
             )
             print_config(kwargs)
             sys.exit(1)
+
+        if END_MARKER not in changelog:
+            head, tail = changelog.split(START_MARKER)
+            head = head.strip('\n')
+            tail = tail.strip('\n')
+            changelog = format(f'{head}\n\n{START_MARKER}\n{END_MARKER}\n\n{tail}')
+            Path(changelog_path).write_text(changelog, encoding='utf-8')
 
     # Ensure since is provided if group is set as target
     _, _, target_type, _ = parse_target(kwargs['target'], kwargs['auth'])
