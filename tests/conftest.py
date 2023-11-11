@@ -4,6 +4,9 @@ from functools import lru_cache
 
 import pytest
 
+# Set an environment variable for tests
+os.environ['PYTEST'] = '1'
+
 
 def pytest_runtest_setup(item):
     for marker in item.iter_markers():
@@ -36,3 +39,15 @@ def network_connectivity():  # no cov
         return True
     except Exception:
         return False
+
+
+@pytest.fixture
+def sp_completed_process():
+    """Fixture to subprocess.CompletedProcess"""
+
+    class MockSubprocessReturn:
+        def __init__(self, stdout='', stderr=''):
+            self.stdout = stdout.encode()
+            self.stderr = stderr.encode()
+
+    return MockSubprocessReturn

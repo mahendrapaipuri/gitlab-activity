@@ -194,6 +194,7 @@ addopts = [
     "--color=yes",
     "--cov-report=xml",
     "--cov-report=term",
+    "--cov-report=html",
     "--cov=gitlab_activity",
     "--cov-branch",
 ]

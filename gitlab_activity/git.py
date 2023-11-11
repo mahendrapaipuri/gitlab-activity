@@ -8,7 +8,7 @@ def git_installed_check():
         subprocess.check_call(
             ['git', '--help'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
-    except subprocess.CalledProcessError:  # pragma: no cover
+    except subprocess.CalledProcessError:
         return False
     return True
 

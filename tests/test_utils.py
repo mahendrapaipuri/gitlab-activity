@@ -12,6 +12,27 @@ from gitlab_activity.utils import *
 
 
 @mark.parametrize(
+    'value',
+    [
+        '{"key": "value"}',
+        '["v1", "v2"]',
+    ],
+)
+def test_custom_param_type(value):
+    """Test CustomParamType casts input properly"""
+    assert ActivityParamType.convert(value=value, param=None, ctx=None) == json.loads(
+        value.replace("'", '"')
+    )
+
+
+def test_custom_param_type_exceptions():
+    """Test CustomParamType raises exceptions on incorrect inputs"""
+    with raises(click.exceptions.BadParameter) as excinfo:
+        ActivityParamType.convert(value='test', param=None, ctx=None)
+        assert 'Failed to cast into list using json.loads' in str(excinfo.value)
+
+
+@mark.parametrize(
     'config',
     [
         {'options': {'activity': {'foo': 'bar'}}},
@@ -39,6 +60,17 @@ def test_read_config_validation(tmpdir, config):
 
 @mark.parametrize(
     'env_name',
+    ['NEXT_VERSION_SPECIFIER', 'CI_COMMIT_TAG'],
+)
+def test_next_version_specifier(env_name):
+    """Test if get_next_version_specifier can be taken from different env vars"""
+    with mock.patch.dict(os.environ, {env_name: env_name}, clear=True):
+        version = get_next_version_specifier()
+        assert version == env_name
+
+
+@mark.parametrize(
+    'env_name',
     ['GITLAB_ACCESS_TOKEN', 'CI_JOB_TOKEN'],
 )
 def test_auth_token(env_name):
@@ -46,6 +78,31 @@ def test_auth_token(env_name):
     with mock.patch.dict(os.environ, {env_name: env_name}, clear=True):
         token = get_auth_token()
         assert token == env_name
+
+
+@mock.patch('subprocess.run')
+def test_auth_token_with_glab(sub_func, sp_completed_process):
+    """Test if auth token can be taken glab CLI command"""
+    with mock.patch.dict(os.environ, {}, clear=True):
+        sub_func.return_value = sp_completed_process(stderr='Token: foo')
+        token = get_auth_token()
+        assert token == 'foo'
+
+
+@mock.patch('subprocess.run')
+@mark.parametrize(
+    'exception',
+    [
+        subprocess.CalledProcessError('127', 'glab'),
+        FileNotFoundError,
+    ],
+)
+def test_auth_token_with_glab_exception(sub_func, exception):
+    """Test if auth_token returns None when exception is raised"""
+    with mock.patch.dict(os.environ, {}, clear=True):
+        sub_func.side_effect = exception
+        token = get_auth_token()
+        assert token is None
 
 
 @mark.parametrize(
@@ -88,6 +145,18 @@ def test_get_project_id():
     """Test _get_project_id returns None when invalid input"""
     tid = utils._get_project_or_group_id('gitlab.com', 'foo', 'group', 'token')
     assert tid is None
+
+
+def test_get_latest_tag():
+    """Test get_latest_tag returns None when invalid input"""
+    assert utils.get_latest_tag('gitlab.com', 'foo', '12345', 'token') is None
+
+
+def test_get_latest_mr():
+    """Test get_latest_mr returns None when invalid input"""
+    with raises(RuntimeError) as excinfo:
+        utils.get_latest_mr('gitlab.com', 'foo', 'token')
+    assert str(excinfo.value) == 'Failed to MRs for target foo'
 
 
 def test_get_datetime_and_type():
