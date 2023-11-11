@@ -53,17 +53,17 @@ def configure(ctx, _, filename):
     By default, config file .gitlab-activity.yaml in current directory will be
     used if it exists. The configuration also supports
 
-    - pyproject.toml within section [tool.gitlab-activity]
+    - `pyproject.toml` within section `[tool.gitlab-activity]`
 
-    - package.json within gitlab-activity section
+    - `package.json` within `gitlab-activity` key
 
     The order of priority of loading configuration file is as follows:
 
-    - .gitlab-activity.yaml
+    - `.gitlab-activity.yaml`
 
-    - pyproject.toml
+    - `pyproject.toml`
 
-    - package.json
+    - `package.json`
 
     Configuration **will not** be merged from different files. All configuration
     will be loaded from the first file that is found in the current directory.
@@ -85,7 +85,7 @@ def configure(ctx, _, filename):
     '--target',
     type=str,
     help="""The GitLab organization/repo for which you want to grab recent activity
-    [issues/merge_requests]. Can either be *just* an organization (e.g., `gitlab-org`),
+    [issues/merge_requests]. Can either be _just_ an organization (e.g., `gitlab-org`),
     or a combination organization and repo (e.g., `gitlab-org/gitlab-docs`).
     If the former, all repositories for that org will be used. If the latter,
     only the specified repository will be used.
@@ -117,7 +117,7 @@ def configure(ctx, _, filename):
     '--since',
     type=str,
     help="""Return activity since this date or git reference.
-    Can be any string that is parsed with dateutil.parser.parse. If None, activity
+    Can be any string that is parsed with `dateutil.parser.parse`. If None, activity
     since latest tag will be reported.""",
     default=None,
     show_default=True,
@@ -128,7 +128,7 @@ def configure(ctx, _, filename):
     '--until',
     type=str,
     help="""Return activity until this date or git reference.
-    Can be any string that is parsed with dateutil.parser.parse. If None, today's
+    Can be any string that is parsed with `dateutil.parser.parse`. If None, today's
     date will be used.""",
     default=None,
     show_default=True,
@@ -142,7 +142,7 @@ def configure(ctx, _, filename):
 
     This option can be passed multiple times, e.g.,
 
-    gitlab-activity --activity issues --activity merge_requests
+    `gitlab-activity --activity issues --activity merge_requests`
 
     By default only merge_requests activity will be returned.""",
     default=['merge_requests'],
@@ -225,7 +225,7 @@ def configure(ctx, _, filename):
     '--cache',
     is_flag=True,
     help="""Whether to cache activity data in CSV files. The data files can be
-    found at ~/.cache/gitlab-activity-cache folder organized based on org/repo.""",
+    found at `~/.cache/gitlab-activity-cache` folder organized based on org/repo.""",
     default=False,
     show_default=True,
 )

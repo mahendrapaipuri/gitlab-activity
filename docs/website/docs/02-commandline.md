@@ -19,7 +19,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `config`:
 
-  - Type: <click.types.Path object at 0x7f7e7fed0f70>
+  - Type: <click.types.Path object at 0x7fbacb9614c0>
   - Default: `.gitlab-activity.toml`
   - Usage: `-c/--config`
 
@@ -33,17 +33,17 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
   By default, config file .gitlab-activity.yaml in current directory will be
   used if it exists. The configuration also supports
 
-  - pyproject.toml within section [tool.gitlab-activity]
+  - `pyproject.toml` within section `[tool.gitlab-activity]`
 
-  - package.json within gitlab-activity section
+  - `package.json` within `gitlab-activity` key
 
   The order of priority of loading configuration file is as follows:
 
-  - .gitlab-activity.yaml
+  - `.gitlab-activity.yaml`
 
-  - pyproject.toml
+  - `pyproject.toml`
 
-  - package.json
+  - `package.json`
 
   Configuration **will not** be merged from different files. All configuration
   will be loaded from the first file that is found in the current directory.
@@ -95,7 +95,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
   - Usage: `-s/--since`
 
   Return activity since this date or git reference.
-  Can be any string that is parsed with dateutil.parser.parse. If None, activity
+  Can be any string that is parsed with `dateutil.parser.parse`. If None, activity
   since latest tag will be reported.
 
 - `until`:
@@ -105,7 +105,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
   - Usage: `-u/--until`
 
   Return activity until this date or git reference.
-  Can be any string that is parsed with dateutil.parser.parse. If None, today's
+  Can be any string that is parsed with `dateutil.parser.parse`. If None, today's
   date will be used.
 
 - `activity`:
@@ -119,7 +119,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
   This option can be passed multiple times, e.g.,
 
-  gitlab-activity --activity issues --activity merge_requests
+  `gitlab-activity --activity issues --activity merge_requests`
 
   By default only merge_requests activity will be returned.
 
@@ -206,11 +206,11 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
   - Usage: `--cache`
 
   Whether to cache activity data in CSV files. The data files can be
-  found at ~/.cache/gitlab-activity-cache folder organized based on org/repo.
+  found at `~/.cache/gitlab-activity-cache` folder organized based on org/repo.
 
 - `categories`:
 
-  - Type: <gitlab_activity.utils.CustomParamType object at 0x7f7e5e098b20>
+  - Type: <gitlab_activity.utils.CustomParamType object at 0x7fbaa9a408f0>
   - Default: `none`
   - Usage: `--categories`
 
@@ -218,7 +218,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `bot_users`:
 
-  - Type: <gitlab_activity.utils.CustomParamType object at 0x7f7e5e098b20>
+  - Type: <gitlab_activity.utils.CustomParamType object at 0x7fbaa9a408f0>
   - Default: `none`
   - Usage: `--bot-users`
 
@@ -255,19 +255,19 @@ Options:
                                in current directory will be used if it exists.
                                The configuration also supports
 
-                               - pyproject.toml within section [tool.gitlab-
-                               activity]
+                               - `pyproject.toml` within section
+                               `[tool.gitlab-activity]`
 
-                               - package.json within gitlab-activity section
+                               - `package.json` within `gitlab-activity` key
 
                                The order of priority of loading configuration
                                file is as follows:
 
-                               - .gitlab-activity.yaml
+                               - `.gitlab-activity.yaml`
 
-                               - pyproject.toml
+                               - `pyproject.toml`
 
-                               - package.json
+                               - `package.json`
 
                                Configuration **will not** be merged from
                                different files. All configuration will be
@@ -281,7 +281,7 @@ Options:
                                config files to stderr
   -t, --target <str>           The GitLab organization/repo for which you want
                                to grab recent activity
-                               [issues/merge_requests]. Can either be *just*
+                               [issues/merge_requests]. Can either be _just_
                                an organization (e.g., `gitlab-org`), or a
                                combination organization and repo (e.g.,
                                `gitlab-org/gitlab-docs`). If the former, all
@@ -306,19 +306,19 @@ Options:
                                reference name  [default: main]
   -s, --since <str>            Return activity since this date or git
                                reference. Can be any string that is parsed
-                               with dateutil.parser.parse. If None, activity
+                               with `dateutil.parser.parse`. If None, activity
                                since latest tag will be reported.
   -u, --until <str>            Return activity until this date or git
                                reference. Can be any string that is parsed
-                               with dateutil.parser.parse. If None, today's
+                               with `dateutil.parser.parse`. If None, today's
                                date will be used.
   --activity <str>             Activity to report. Currently issues and
                                merge_requests are supported.
 
                                This option can be passed multiple times, e.g.,
 
-                               gitlab-activity --activity issues --activity
-                               merge_requests
+                               `gitlab-activity --activity issues --activity
+                               merge_requests`
 
                                By default only merge_requests activity will be
                                returned.  [default: merge_requests]
@@ -350,8 +350,8 @@ Options:
                                [DOC], etc.
   --all                        Whether to include all the GitLab tags
   --cache                      Whether to cache activity data in CSV files.
-                               The data files can be found at ~/.cache/gitlab-
-                               activity-cache folder organized based on
-                               org/repo.
+                               The data files can be found at
+                               `~/.cache/gitlab-activity-cache` folder
+                               organized based on org/repo.
   --help                       Show this message and exit.
 ```

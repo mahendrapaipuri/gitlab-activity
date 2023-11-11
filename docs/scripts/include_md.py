@@ -25,6 +25,10 @@ for f in docs_path.glob('**/*.md'):
     path = path_match.group(1)
     fpath = docs_path.joinpath(path)
 
+    # Check if fpath exists
+    if not fpath.exists():
+        continue
+
     # Read contents from path
     new_content = fpath.read_text(encoding='utf-8')
 
