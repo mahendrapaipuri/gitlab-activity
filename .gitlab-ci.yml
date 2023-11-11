@@ -26,9 +26,9 @@ variables:
     - npm --version
 
 # Anchor for setting up prepare_release job
-.setup_prepare_release:
+.setup_hatch:
   before_script:
-    - echo "Preparing release..."
+    - echo "Setting up hatch..."
     # Install hatch and install package
     - pip install git+https://github.com/pypa/hatch
     - pip install -e '.[dev]'
@@ -50,7 +50,7 @@ variables:
   # Get new version
   - export NEXT_VERSION_SPECIFIER=$(hatch version)
   # Generate changelog
-  - gitlab-activity --append -o CHANGELOG.md
+  - gitlab-activity
   - cat CHANGELOG.md
   - git add CHANGELOG.md gitlab_activity/_version.py
   # Run pre-commit to auto format files
@@ -63,6 +63,20 @@ variables:
   - git commit -m "Bump version to ${NEXT_VERSION_SPECIFIER} & update CHANGELOG.md" --no-verify
   # Create new tag
   - git tag ${NEXT_VERSION_SPECIFIER} -m "Release ${NEXT_VERSION_SPECIFIER}"
+
+# Anchor with reference for add_changelog_entry job.
+.add_changelog_entry: &add_changelog_entry # Generate changelog
+  - gitlab-activity
+  - cat CHANGELOG.md
+  - git add CHANGELOG.md
+  # Run pre-commit to auto format files
+  - pre-commit install
+  - pre-commit run --all-files || true
+  # Configure mail and name of the user who should be visible in the commit history
+  - git config --global user.email 'release-bot@gitlab.com'
+  - git config --global user.name 'Release Bot'
+  # Dont run pre-commit here
+  - git commit -m "Update CHANGELOG.md" --no-verify
 
 # Pre commit tests
 pre-commit:
@@ -136,10 +150,23 @@ tests:
   except:
     - tags
 
+# Test to check updating changelog for each MR
+test-update-changelog:
+  stage: pre-release
+  extends: .setup_hatch
+  script:
+    - *add_changelog_entry
+  artifacts:
+    paths:
+      - build/reports/
+    expire_in: 1 day
+  except:
+    - tags
+
 # Test to check release steps
 test-release:
   stage: pre-release
-  extends: .setup_prepare_release
+  extends: .setup_hatch
   # We do clone for this test as cached repos might have existing
   # tags that can fail the job.
   variables:
@@ -209,6 +236,19 @@ release:
   only:
     - tags
 
+# Prepare release by adding entry to changelog after MR has been succesfully merged
+update_changelog:
+  stage: release
+  extends: .setup_hatch
+  script:
+    - *add_changelog_entry
+    # Set remote push URL and push to originating branch
+    - git remote set-url --push origin "https://${GITLAB_CI_USER}:${GITLAB_CI_TOKEN}@${CI_REPOSITORY_URL#*@}"
+    - git push origin HEAD:${CI_COMMIT_REF_NAME} -o ci.skip # Pushes to the same branch as the trigger
+  # Only run on main branch on merge commit
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /Merge.*/
+
 # Prepare release by tagging and adding entry to changelog
 prepare_release:
   stage: release
@@ -217,7 +257,7 @@ prepare_release:
   # tags that can fail the job
   variables:
     GIT_STRATEGY: clone
-  extends: .setup_prepare_release
+  extends: .setup_hatch
   script:
     - *prepare_release
     # Set remote push URL and push to originating branch
