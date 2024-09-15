@@ -337,7 +337,7 @@ def categorize_activity_data(categories, data):
 
 
 def generate_activity_md(
-    target,
+    target_url,
     since=None,
     until=None,
     activity=None,
@@ -355,7 +355,7 @@ def generate_activity_md(
 
     Parameters
     ----------
-    target : str
+    target_url : str
         The GitLab organization/repo for which you want to grab recent issues/MRs.
         Can either be *just* and organization (e.g., `gitlab-org`) or a combination
         organization and repo (e.g., `gitlab-org/gitlab-doc`). If the former, all
@@ -416,7 +416,7 @@ def generate_activity_md(
     RuntimeError
         When since is None and no latest tag is available for target
     """
-    domain, target, target_type, targetid = parse_target(target, auth)
+    domain, target, target_type, targetid = parse_target(target_url, auth)
 
     # If no since parameter is given, set since to lastest tag
     if since is None:
@@ -425,14 +425,19 @@ def generate_activity_md(
     # If we failed to get latest_tag raise an exception
     if since is None:
         msg = (
-            f'Failed to get latest tag/MR for target {target}. '
+            f'Failed to get latest tag/MR for target {target_url}. '
             f'Please provide a valid datestring using --since/-s option'
         )
         raise RuntimeError(msg)
 
     # Grab the data according to our query
     data = get_activity(
-        target, since=since, until=until, activity=activity, auth=auth, cached=cached
+        target_url,
+        since=since,
+        until=until,
+        activity=activity,
+        auth=auth,
+        cached=cached,
     )
     if data.empty:
         return None
