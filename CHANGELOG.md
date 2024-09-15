@@ -2,13 +2,17 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
-## Unreleased (2023-11-11)
+## Unreleased (2024-09-15)
 
-([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/6b6d4d9b241e3819aad78245a7ef562a5710b547...59be8e885e4fce9a910f11c84dd59081b0f75d8b?from_project_id=51534402&straight=false))
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/6b6d4d9b241e3819aad78245a7ef562a5710b547...3bfdd55741e0e1b8c91d0b9ddd74facb22778abe?from_project_id=51534402&straight=false))
 
 ### New features added
 
 - Update Changelog for after each MR event [!18](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/18) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### Bugs fixed
+
+- Do not overwrite target URL [!19](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/19) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 
 ### Documentation improvements
 
