@@ -4,7 +4,7 @@
 
 ## Unreleased (2024-09-15)
 
-([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/6b6d4d9b241e3819aad78245a7ef562a5710b547...3bfdd55741e0e1b8c91d0b9ddd74facb22778abe?from_project_id=51534402&straight=false))
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/6b6d4d9b241e3819aad78245a7ef562a5710b547...90910e1e55927baf8268e8421c453b6737b1a913?from_project_id=51534402&straight=false))
 
 ### New features added
 
@@ -16,6 +16,7 @@
 
 ### Documentation improvements
 
+- Bump docusaurus to v3 [!20](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/20) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 - Add CLI options to documentation [!17](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/17) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 
 ### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
