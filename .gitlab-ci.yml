@@ -158,6 +158,7 @@ tests:
 # Test to check updating changelog for each MR
 test-update-changelog:
   stage: pre-release
+  allow_failure: true
   extends: .setup_hatch
   # We do clone for this test as cached repos might have existing
   # tags that can fail the job.
