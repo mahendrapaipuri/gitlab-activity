@@ -1,8 +1,9 @@
 # Changelog
 
 <!-- <START NEW CHANGELOG ENTRY> -->
+<!-- <END NEW CHANGELOG ENTRY> -->
 
-## Unreleased (2024-09-15)
+## 0.1.1 (2024-09-15)
 
 ([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/6b6d4d9b241e3819aad78245a7ef562a5710b547...90910e1e55927baf8268e8421c453b6737b1a913?from_project_id=51534402&straight=false))
 
@@ -22,8 +23,6 @@
 ### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
 
 [@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.0 (2023-11-02)
 
