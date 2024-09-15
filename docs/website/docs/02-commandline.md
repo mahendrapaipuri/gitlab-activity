@@ -19,7 +19,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `config`:
 
-  - Type: <click.types.Path object at 0x7fbacb9614c0>
+  - Type: `<click.types.Path object at 0x76902c655f50>`
   - Default: `.gitlab-activity.toml`
   - Usage: `-c/--config`
 
@@ -52,7 +52,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `print_config`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--print-config`
 
@@ -60,7 +60,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `target`:
 
-  - Type: STRING
+  - Type: `STRING`
   - Default: `none`
   - Usage: `-t/--target`
 
@@ -82,7 +82,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `branch`:
 
-  - Type: STRING
+  - Type: `STRING`
   - Default: `main`
   - Usage: `-b/--branch`
 
@@ -90,7 +90,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `since`:
 
-  - Type: STRING
+  - Type: `STRING`
   - Default: `none`
   - Usage: `-s/--since`
 
@@ -100,7 +100,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `until`:
 
-  - Type: STRING
+  - Type: `STRING`
   - Default: `none`
   - Usage: `-u/--until`
 
@@ -110,7 +110,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `activity`:
 
-  - Type: STRING
+  - Type: `STRING`
   - Default: `['merge_requests']`
   - Usage: `--activity`
 
@@ -125,7 +125,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `auth`:
 
-  - Type: STRING
+  - Type: `STRING`
   - Default: `none`
   - Usage: `--auth`
 
@@ -135,7 +135,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `output`:
 
-  - Type: STRING
+  - Type: `STRING`
   - Default: `none`
   - Usage: `-o/--output`
 
@@ -143,7 +143,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `append`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--append`
 
@@ -157,7 +157,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `heading_level`:
 
-  - Type: INT
+  - Type: `INT`
   - Default: `1`
   - Usage: `--heading-level`
 
@@ -168,7 +168,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `include_opened`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--include-opened`
 
@@ -176,7 +176,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `include_contributors_list`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--include-contributors-list`
 
@@ -184,7 +184,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `strip_brackets`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--strip-brackets`
 
@@ -193,7 +193,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `all`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--all`
 
@@ -201,7 +201,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `cache`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--cache`
 
@@ -210,7 +210,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `categories`:
 
-  - Type: <gitlab_activity.utils.CustomParamType object at 0x7fbaa9a408f0>
+  - Type: `<gitlab_activity.utils.CustomParamType object at 0x76902c7bebd0>`
   - Default: `none`
   - Usage: `--categories`
 
@@ -218,7 +218,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `bot_users`:
 
-  - Type: <gitlab_activity.utils.CustomParamType object at 0x7fbaa9a408f0>
+  - Type: `<gitlab_activity.utils.CustomParamType object at 0x76902c7bebd0>`
   - Default: `none`
   - Usage: `--bot-users`
 
@@ -226,7 +226,7 @@ Usage: main [OPTIONS] COMMAND [ARGS]...
 
 - `help`:
 
-  - Type: BOOL
+  - Type: `BOOL`
   - Default: `false`
   - Usage: `--help`
 

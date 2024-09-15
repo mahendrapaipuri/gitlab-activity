@@ -1,27 +1,27 @@
 # Website
 
-This website is built using [Docusaurus 2](https://v2.docusaurus.io/),
+This website is built using [Docusaurus 3](https://v3.docusaurus.io/),
 a modern static website generator.
 
-### Installation
+## Installation
 
-```
-$ npm install
+```bash
+npm install
 ```
 
-### Local Development
+## Local Development
 
-```
-$ npm run start
+```bash
+npm run start
 ```
 
 This command starts a local development server and open up a browser window.
 Most changes are reflected live without having to restart the server.
 
-### Build
+## Build
 
-```
-$ npm run build
+```bash
+npm run build
 ```
 
 This command generates static content into the `build` directory and can be served

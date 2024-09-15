@@ -79,7 +79,7 @@ def dump_helper(base_command, docs_dir):
             options="\n".join(
                 [
                     f"- `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}:\n"
-                    f"  - Type: {opt.get('type')}\n"
+                    f"  - Type: `{opt.get('type')}`\n"
                     f"  - Default: `{str(opt.get('default')).lower()}`\n"
                     f"  - Usage: `{opt.get('usage')}`\n"
                     "\n"
