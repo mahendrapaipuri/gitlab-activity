@@ -43,7 +43,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://gitlab.com/mahendrapaipuri/gitlab-activity"
+Homepage = "https://mahendrapaipuri.gitlab.io/gitlab-activity/"
 "Source Code" = "https://gitlab.com/mahendrapaipuri/gitlab-activity"
 
 [project.optional-dependencies]
