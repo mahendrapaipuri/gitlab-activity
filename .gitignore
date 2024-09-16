@@ -113,3 +113,6 @@ docs/tags_list.txt
 
 # Ignore md file for CLI options
 main.md
+
+# Hatch version
+gitlab_activity/_version.py
