@@ -1,6 +1,19 @@
 # Changelog
 
 <!-- <START NEW CHANGELOG ENTRY> -->
+
+## Unreleased (2024-09-16)
+
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/368a6ca67022722d8ab4146ae09cd8af2afe77db...5b5780b9fafd3285a721d3303b8c5069afc186de?from_project_id=51534402&straight=false))
+
+### Bugs fixed
+
+- Ensure target URL is conserved in `generate_all_activity_md` [!21](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/21) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
+
+[@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
+
 <!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.1 (2024-09-15)
