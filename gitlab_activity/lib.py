@@ -114,7 +114,7 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
 
 
 def generate_all_activity_md(
-    target,
+    target_url,
     since,
     activity=None,
     auth=None,
@@ -131,7 +131,7 @@ def generate_all_activity_md(
 
     Parameters
     ----------
-    target : str
+    target_url : str
         The GitLab organization/repo for which you want to grab recent issues/MRs.
         Can either be *just* and organization (e.g., `gitlab-org`) or a combination
         organization and repo (e.g., `gitlab-org/gitlab-doc`). If the former, all
@@ -179,7 +179,7 @@ def generate_all_activity_md(
         The markdown changelog entry for all of the release tags in the repo.
     """
     # Parse GitLab domain, org and repo
-    domain, target, target_type, targetid = parse_target(target, auth)
+    domain, target, target_type, targetid = parse_target(target_url, auth)
 
     # Get all tags and sha for each tag for only projects
     # For group activity use dummy tags and get activity between since and now
@@ -211,7 +211,7 @@ def generate_all_activity_md(
 
         log(f'Tag {i + 1} of {len(tags)} being processed')
         md = generate_activity_md(
-            target,
+            target_url,
             since=since_ref,
             heading_level=2,
             until=until_ref,
