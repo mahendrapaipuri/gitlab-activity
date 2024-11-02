@@ -364,7 +364,7 @@ def main(**kwargs):
 
     common_kwargs = {
         'activity': kwargs['activity'],
-        'auth': kwargs['auth'],
+        'token': kwargs['auth'],
         'include_opened': bool(kwargs['include_opened']),
         'strip_brackets': bool(kwargs['strip_brackets']),
         'include_contributors_list': bool(kwargs['include_contributors_list']),
