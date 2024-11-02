@@ -33,7 +33,7 @@ PLACEHOLDER_DF_COLS = [
 ]
 
 
-def get_activity(target, since, until=None, activity=None, auth=None, cached=False):
+def get_activity(target, since, until=None, activity=None, token=None, cached=False):
     """Return issues/MRs within a date window.
 
     Parameters
@@ -53,7 +53,7 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
         date will be used.
     activity : ["issue", "merge_requests"], default: None
         Return only issues or MRs. If None, only merge_requests will be returned
-    auth : str | None, default: None
+    token : str | None, default: None
         An authentication token for GitLab. If None, then the environment
         variable `GITLAB_ACCESS_TOKEN` will be tried. If it does not exist,
         then attempt to infer a token from `glab auth status -t`.
@@ -71,11 +71,11 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
         will be a combination of issues and MRs.
     """
     # Parse GitLab domain, org and repo
-    domain, target, target_type, target_id = parse_target(target, auth)
+    domain, target, target_type, target_id = parse_target(target, token)
 
     # Figure out dates for our query
-    since_dt, since_is_git_ref = get_datetime_and_type(domain, target_id, since, auth)
-    until_dt, until_is_git_ref = get_datetime_and_type(domain, target_id, until, auth)
+    since_dt, since_is_git_ref = get_datetime_and_type(domain, target_id, since, token)
+    until_dt, until_is_git_ref = get_datetime_and_type(domain, target_id, until, token)
     since_dt_str = f'{since_dt:%Y-%m-%dT%H:%M:%SZ}'
     until_dt_str = f'{until_dt:%Y-%m-%dT%H:%M:%SZ}'
 
@@ -92,7 +92,7 @@ def get_activity(target, since, until=None, activity=None, auth=None, cached=Fal
             f'from {since_dt_str} until {until_dt_str}',
         )
         qql = GitLabGraphQlQuery(
-            domain, target, target_type, act, since_dt_str, until_dt_str, auth=auth
+            domain, target, target_type, act, since_dt_str, until_dt_str, token=token
         )
         data = qql.get_data()
         query_data.append(data)
@@ -117,7 +117,7 @@ def generate_all_activity_md(
     target_url,
     since,
     activity=None,
-    auth=None,
+    token=None,
     include_opened=False,
     strip_brackets=False,
     include_contributors_list=False,
@@ -142,7 +142,7 @@ def generate_all_activity_md(
         any str that is parsed with dateutil.parser.parse.
     activity : ["issues", "merge_requests"] | None, default: None
         Return only issues or MRs. If None, only merge_requests will be returned.
-    auth : str | None, default: None
+    token : str | None, default: None
         An authentication token for GitLab. If None, then the environment
         variable `GITLAB_ACCESS_TOKEN` will be tried.
     include_opened : bool, default: False
@@ -179,12 +179,12 @@ def generate_all_activity_md(
         The markdown changelog entry for all of the release tags in the repo.
     """
     # Parse GitLab domain, org and repo
-    domain, target, target_type, targetid = parse_target(target_url, auth)
+    domain, target, target_type, targetid = parse_target(target_url, token)
 
     # Get all tags and sha for each tag for only projects
     # For group activity use dummy tags and get activity between since and now
     if target_type == 'project':
-        tags = get_all_tags(domain, target, targetid, auth)
+        tags = get_all_tags(domain, target, targetid, token)
     else:
         until = f'{datetime.datetime.now().astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
         tags = [
@@ -215,7 +215,7 @@ def generate_all_activity_md(
             since=since_ref,
             heading_level=2,
             until=until_ref,
-            auth=auth,
+            token=token,
             activity=activity,
             include_opened=include_opened,
             strip_brackets=strip_brackets,
@@ -341,7 +341,7 @@ def generate_activity_md(
     since=None,
     until=None,
     activity=None,
-    auth=None,
+    token=None,
     include_opened=False,
     strip_brackets=False,
     include_contributors_list=False,
@@ -371,7 +371,7 @@ def generate_activity_md(
         date will be used.
     activity : ["issues", "merge_requests"], default: None
         Return only issues or MRs. If None, only merge_requests will be returned.
-    auth : str | None, default: None
+    token : str | None, default: None
         An authentication token for GitLab. If None, then the environment
         variable `GITLAB_ACCESS_TOKEN` will be tried.
     include_opened : bool, default: False
@@ -416,11 +416,11 @@ def generate_activity_md(
     RuntimeError
         When since is None and no latest tag is available for target
     """
-    domain, target, target_type, targetid = parse_target(target_url, auth)
+    domain, target, target_type, targetid = parse_target(target_url, token)
 
     # If no since parameter is given, set since to lastest tag
     if since is None:
-        since = get_latest_tag(domain, target, targetid, auth)
+        since = get_latest_tag(domain, target, targetid, token)
 
     # If we failed to get latest_tag raise an exception
     if since is None:
@@ -436,7 +436,7 @@ def generate_activity_md(
         since=since,
         until=until,
         activity=activity,
-        auth=auth,
+        token=token,
         cached=cached,
     )
     if data.empty:

@@ -6,6 +6,7 @@ import pandas as pd
 import requests
 from tqdm.auto import tqdm
 
+from gitlab_activity.utils import BearerAuth
 from gitlab_activity.utils import convert_snake_case_to_camel_case
 from gitlab_activity.utils import get_namespace_projects
 from gitlab_activity.utils import log
@@ -157,7 +158,7 @@ class GitLabGraphQlQuery:
         since,
         until,
         display_progress=True,
-        auth=None,
+        token=None,
     ) -> None:
         """Run a GitLab GraphQL query and return the issue/PR data from it.
 
@@ -178,7 +179,7 @@ class GitLabGraphQlQuery:
           Activity until this data. It should be a date string
         display_progress : bool
           Whether to display a progress bar as data is fetched.
-        auth : string | None
+        token : string | None
           An authentication token for GitLab. If None, then the environment
           variable `GITLAB_ACCESS_TOKEN` will be tried.
         """
@@ -186,11 +187,8 @@ class GitLabGraphQlQuery:
         self.activity = activity
         # For internal use only. GraphQL expects camelCased variables
         self._activity = convert_snake_case_to_camel_case(activity)
-        # Get headers
-        self.headers = {
-            'Authorization': f'Bearer {auth}',
-            'Content-Type': 'application/json',
-        }
+        # Get auth
+        self.auth = BearerAuth(token)
 
         # If target type is project or group we can use the graphql out-of-the-box
         # If it is a namespace, first get all projects in the namespace and execute
@@ -199,7 +197,7 @@ class GitLabGraphQlQuery:
             self.targets = [target]
             self.scope = target_type
         else:
-            self.targets = get_namespace_projects(self.domain, target, auth)
+            self.targets = get_namespace_projects(self.domain, target, token)
             self.scope = 'project'
 
         # Different queries for issues and merge_requests. We need to get created/merged
@@ -228,7 +226,7 @@ class GitLabGraphQlQuery:
         response = requests.post(
             f'https://{self.domain}/api/graphql',
             json={'query': gql_query},
-            headers=self.headers,
+            auth=self.auth,
         )
         if response.status_code != 200:  # noqa: PLR2004
             msg = (

@@ -46,6 +46,17 @@ class CustomParamType(click.ParamType):
 ActivityParamType = CustomParamType()
 
 
+class BearerAuth(requests.auth.AuthBase):
+    """Custom Auth class for GitLab authentication"""
+
+    def __init__(self, token) -> None:
+        self.token = token
+
+    def __call__(self, r):  # noqa: ANN204
+        r.headers['Authorization'] = f'Bearer {self.token}'
+        return r
+
+
 def log(*outputs, **kwargs):
     """Log an output to stderr"""
     kwargs.setdefault('file', sys.stderr)
@@ -221,7 +232,7 @@ def sanitize_target(target):
     return domain, target
 
 
-def parse_target(target, auth):
+def parse_target(target, token):
     """Parses target based on input such as:
 
     - gitlab-org
@@ -241,7 +252,7 @@ def parse_target(target, auth):
         organization and repo (e.g., `gitlab-org/gitlab-doc`). If the former, all
         repositories for that org will be used. If the latter, only the specified
         repository will be used.
-    auth : str
+    token : str
         An authentication token for GitLab.
 
     Returns
@@ -265,7 +276,7 @@ def parse_target(target, auth):
     # Try to guess the type of target in order group, project and namespace
     ttype = None
     for ttype in ('group', 'project', 'namespace'):
-        targetid = _get_project_or_group_id(domain, target, ttype, auth)
+        targetid = _get_project_or_group_id(domain, target, ttype, token)
         if targetid is not None:
             break
 
@@ -276,7 +287,7 @@ def parse_target(target, auth):
     return domain, target, ttype, targetid
 
 
-def get_commits(domain, target, targetid, auth, since_dt=None, until_dt=None):
+def get_commits(domain, target, targetid, token, since_dt=None, until_dt=None):
     """Return commits between since and until
 
     Parameters
@@ -287,7 +298,7 @@ def get_commits(domain, target, targetid, auth, since_dt=None, until_dt=None):
         Sanitized target after stripping elements like 'http(s)', '.git'
     targetid : str
         Target numeric ID used by GitLab
-    auth : str
+    token : str
         An authentication token for GitLab.
     since_dt : str | default = None
         Return commits since this datetime.
@@ -299,7 +310,6 @@ def get_commits(domain, target, targetid, auth, since_dt=None, until_dt=None):
     list of str | None
         List of tags or None
     """
-    headers = _get_headers(auth)
     url = f'https://{domain}/api/v4/projects/{targetid}/repository/commits'
 
     # Make query params
@@ -311,7 +321,7 @@ def get_commits(domain, target, targetid, auth, since_dt=None, until_dt=None):
     all_data = []
     while True:
         try:
-            response = requests.get(url, params=query_params, headers=headers)
+            response = requests.get(url, params=query_params, auth=_get_auth(token))
             response.raise_for_status()
         except requests.exceptions.HTTPError:  # noqa: PERF203
             # Ignore all errors
@@ -332,7 +342,7 @@ def get_commits(domain, target, targetid, auth, since_dt=None, until_dt=None):
     return all_data
 
 
-def get_all_tags(domain, target, targetid, auth):
+def get_all_tags(domain, target, targetid, token):
     """Return all tags of the repository
 
     Parameters
@@ -343,7 +353,7 @@ def get_all_tags(domain, target, targetid, auth):
         Sanitized target after stripping elements like 'http(s)', '.git'
     targetid : str
         Target numeric ID used by GitLab
-    auth : str
+    token : str
         An authentication token for GitLab.
 
     Returns
@@ -351,11 +361,10 @@ def get_all_tags(domain, target, targetid, auth):
     list of str
         List of tags
     """
-    headers = _get_headers(auth)
     # Could not find GraphQL query to get list of tags of project
     url = f'https://{domain}/api/v4/projects/{targetid}/repository/tags'
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, auth=_get_auth(token))
         response.raise_for_status()
     except requests.exceptions.HTTPError:
         msg = f'Failed to get tags for target {target}'
@@ -372,7 +381,7 @@ def get_all_tags(domain, target, targetid, auth):
 
     # We make a query for commits only until first tag commit which
     # should give us all commits from start
-    commits = get_commits(domain, target, targetid, auth, until_dt=all_tags[-1][-1])
+    commits = get_commits(domain, target, targetid, token, until_dt=all_tags[-1][-1])
 
     # Finally add a dummy tag 0.0.0 from start of the repository to get
     # first tag's activity in the report
@@ -386,7 +395,7 @@ def get_all_tags(domain, target, targetid, auth):
     return all_tags
 
 
-def get_latest_tag(domain, target, targetid, auth):
+def get_latest_tag(domain, target, targetid, token):
     """Return latest tag of a target via API call
 
     Parameters
@@ -397,7 +406,7 @@ def get_latest_tag(domain, target, targetid, auth):
         Sanitized target after stripping elements like 'http(s)', '.git'
     targetid : str
         Target numeric ID used by GitLab
-    auth : str
+    token : str
         An authentication token for GitLab.
 
     Returns
@@ -406,7 +415,7 @@ def get_latest_tag(domain, target, targetid, auth):
         Latest tag or None
     """
     try:
-        tags = get_all_tags(domain, target, targetid, auth)
+        tags = get_all_tags(domain, target, targetid, token)
     except RuntimeError:
         log(f'No tags found for the target {target}')
         return None
@@ -414,7 +423,7 @@ def get_latest_tag(domain, target, targetid, auth):
         return tags[0][1]
 
 
-def get_latest_mr(domain, target, auth):
+def get_latest_mr(domain, target, token):
     """Return latest MR of a target via API call
 
     Parameters
@@ -423,7 +432,7 @@ def get_latest_mr(domain, target, auth):
         Domain of the target repository
     target : str
         Sanitized target after stripping elements like 'http(s)', '.git'
-    auth : str
+    token : str
         An authentication token for GitLab.
 
     Returns
@@ -445,7 +454,7 @@ def get_latest_mr(domain, target, auth):
 }}"""
 
     try:
-        data = _make_gql_request(domain, query, auth)
+        data = _make_gql_request(domain, query, token)
         # Get project nodes
         merge_requests = [
             (p['mergeCommitSha'], p['mergedAt'])
@@ -460,7 +469,7 @@ def get_latest_mr(domain, target, auth):
     return merge_requests[0][0]
 
 
-def get_namespace_projects(domain, namespace, auth):
+def get_namespace_projects(domain, namespace, token):
     """Return a list of project paths in a given domain/namespace
 
     Parameters
@@ -469,7 +478,7 @@ def get_namespace_projects(domain, namespace, auth):
         Domain of the target repository
     namespace : str
         Namespace in the GitLab
-    auth : str
+    token : str
         An authentication token for GitLab.
 
     Returns
@@ -496,7 +505,7 @@ def get_namespace_projects(domain, namespace, auth):
 }}"""
 
     try:
-        data = _make_gql_request(domain, query, auth)
+        data = _make_gql_request(domain, query, token)
         # Get project nodes
         projects = [
             p['node']['fullPath'] for p in data['namespace']['projects']['edges']
@@ -510,15 +519,12 @@ def get_namespace_projects(domain, namespace, auth):
     return projects
 
 
-def _get_headers(auth):
-    """Returns headers for making API request"""
-    return {
-        'Authorization': f'Bearer {auth}',
-        'Content-Type': 'application/json',
-    }
+def _get_auth(token):
+    """Returns custom auth class for making API request"""
+    return BearerAuth(token)
 
 
-def _get_project_or_group_id(domain, target, target_type, auth):
+def _get_project_or_group_id(domain, target, target_type, token):
     """Returns numeric project or group id from target
 
     Parameters
@@ -529,7 +535,7 @@ def _get_project_or_group_id(domain, target, target_type, auth):
         Sanitized target after stripping elements like 'http(s)', '.git'
     target_type : str
         Target type ie., project/group/namespace
-    auth : str
+    token : str
         An authentication token for GitLab.
 
     Returns
@@ -546,7 +552,7 @@ def _get_project_or_group_id(domain, target, target_type, auth):
 }}"""
 
     try:
-        data = _make_gql_request(domain, query, auth)
+        data = _make_gql_request(domain, query, token)
     except requests.exceptions.HTTPError:
         return None
     else:
@@ -556,7 +562,7 @@ def _get_project_or_group_id(domain, target, target_type, auth):
         return None
 
 
-def _make_gql_request(domain, query, auth):
+def _make_gql_request(domain, query, token):
     """Returns response data of the GraphQL request
 
     Parameters
@@ -571,14 +577,11 @@ def _make_gql_request(domain, query, auth):
     str | None
         ID of the target or None if not found
     """
-    # Get headers
-    headers = _get_headers(auth)
-
     # Get API URL
     url = f'https://{domain}/api/graphql'
 
     # Make request
-    response = requests.post(url, json={'query': query}, headers=headers)
+    response = requests.post(url, json={'query': query}, auth=_get_auth(token))
     response.raise_for_status()
 
     # Check if data key exists
@@ -588,7 +591,7 @@ def _make_gql_request(domain, query, auth):
     return response.json()['data']
 
 
-def get_datetime_and_type(domain, targetid, datetime_or_git_ref, auth):
+def get_datetime_and_type(domain, targetid, datetime_or_git_ref, token):
     """Return a datetime object and bool indicating if it is a git reference or
     not.
 
@@ -600,7 +603,7 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, auth):
         Target numeric ID used by GitLab
     datetime_or_git_ref : str
         Either a datetime string or a git reference
-    auth : str | None, default: None
+    token : str | None, default: None
         An authentication token for GitLab.
 
     Returns
@@ -623,7 +626,7 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, auth):
         return (dt, False)
 
     try:
-        dt = _get_datetime_from_git_ref(domain, targetid, datetime_or_git_ref, auth)
+        dt = _get_datetime_from_git_ref(domain, targetid, datetime_or_git_ref, token)
     except Exception:
         try:
             dt = dateutil.parser.parse(datetime_or_git_ref)
@@ -636,10 +639,9 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, auth):
         return (dt, True)
 
 
-def _get_datetime_from_git_ref(domain, repoid, ref, auth):
+def _get_datetime_from_git_ref(domain, repoid, ref, token):
     """Return a datetime from a git reference"""
-    headers = _get_headers(auth)
     url = f'https://{domain}/api/v4/projects/{repoid}/repository/commits/{ref}'
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, auth=_get_auth(token))
     response.raise_for_status()
     return dateutil.parser.parse(response.json()['committed_date'])
