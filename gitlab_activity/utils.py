@@ -524,6 +524,11 @@ def _get_auth(token):
     return BearerAuth(token)
 
 
+def _encode(value):
+    """Returns URL safe encoded value"""
+    return requests.utils.quote(value, safe="")
+
+
 def _get_project_or_group_id(domain, target, target_type, token):
     """Returns numeric project or group id from target
 
@@ -641,7 +646,7 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, token):
 
 def _get_datetime_from_git_ref(domain, repoid, ref, token):
     """Return a datetime from a git reference"""
-    url = f'https://{domain}/api/v4/projects/{repoid}/repository/commits/{ref}'
+    url = f'https://{domain}/api/v4/projects/{repoid}/repository/commits/{_encode(ref)}'
     response = requests.get(url, auth=_get_auth(token))
     response.raise_for_status()
     return dateutil.parser.parse(response.json()['committed_date'])
