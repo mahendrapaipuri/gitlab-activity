@@ -1,6 +1,23 @@
 # Changelog
 
 <!-- <START NEW CHANGELOG ENTRY> -->
+
+## Unreleased (2024-11-02)
+
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/ce998f5c653ee34eaf4491fbe073f95ff2da5620...fe0d5427a5cdb6a84f6d1eee9a2e94f72dff52ac?from_project_id=51534402&straight=false))
+
+### Bugs fixed
+
+- refactor: Use auth instead of headers for requests auth [!22](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/22) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### Maintenance and upkeep improvements
+
+- refactor: Use auth instead of headers for requests auth [!22](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/22) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
+
+[@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
+
 <!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.2 (2024-09-16)
