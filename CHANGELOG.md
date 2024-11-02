@@ -4,10 +4,11 @@
 
 ## Unreleased (2024-11-02)
 
-([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/ce998f5c653ee34eaf4491fbe073f95ff2da5620...fe0d5427a5cdb6a84f6d1eee9a2e94f72dff52ac?from_project_id=51534402&straight=false))
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/ce998f5c653ee34eaf4491fbe073f95ff2da5620...086a104419eaf53861c346799b3423fc8e0e33f7?from_project_id=51534402&straight=false))
 
 ### Bugs fixed
 
+- fix: Encode URL before passing to requests [!23](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/23) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 - refactor: Use auth instead of headers for requests auth [!22](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/22) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 
 ### Maintenance and upkeep improvements
