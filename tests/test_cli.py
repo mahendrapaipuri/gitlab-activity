@@ -256,6 +256,14 @@ def test_cli_nonexistant_local_repo(tmpdir):
     assert completed.returncode == 1
 
 
+def test_cli_invalid_token(tmpdir):
+    """Test invalid token is presented to gitlab-activity"""
+    cmd = f'gitlab-activity -c {CONFIG_PATH} -t {NS}/{REPO} --auth foo'
+    completed = run(cmd.split(), capture_output=True, cwd=tmpdir)
+    assert 'Invalid auth token' in completed.stderr.decode()
+    assert completed.returncode == 1
+
+
 @mark.requires_internet
 def test_cli_nonexistent_branch(tmpdir):
     """Test that no existend branch should emit empty md"""

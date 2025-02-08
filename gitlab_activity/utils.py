@@ -201,6 +201,36 @@ def get_auth_token():
     return token
 
 
+def check_auth_token(target, token):
+    """Checks if auth token is valid.
+
+    Returns
+    -------
+
+    valid : bool
+        If Auth token is valid or not
+    """
+    # Get domain from target
+    domain, _ = sanitize_target(target)
+
+    # Query that returns username
+    query = 'query {currentUser {name}}'
+
+    try:
+        _make_gql_request(domain, query, token)
+    except requests.exceptions.HTTPError as e:
+        log(f'Invalid auth token {e}')
+        return False
+    except requests.exceptions.ConnectionError:
+        log(f'Failed to connect to domain {domain}')
+        return False
+    except Exception as e:
+        log(f'Failed to make request to domain {domain} due to {e}')
+        return False
+    else:
+        return True
+
+
 def sanitize_target(target):
     """Sanitize target and returns domain and target"""
     # Always use default domain as gitlab.com

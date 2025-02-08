@@ -14,6 +14,7 @@ from gitlab_activity.lib import generate_activity_md
 from gitlab_activity.lib import generate_all_activity_md
 from gitlab_activity.lib import generate_changelog
 from gitlab_activity.utils import ActivityParamType
+from gitlab_activity.utils import check_auth_token
 from gitlab_activity.utils import get_auth_token
 from gitlab_activity.utils import log
 from gitlab_activity.utils import parse_target
@@ -274,6 +275,11 @@ def main(**kwargs):
             )
             print_config(kwargs)
             sys.exit(1)
+
+    # Check if domain is reachable and auth token is valid
+    if not check_auth_token(kwargs['target'], kwargs['auth']):
+        print_config(kwargs)
+        sys.exit(1)
 
     # Check if output file is specified if --append flag exists
     if kwargs['append'] and not kwargs['output']:
