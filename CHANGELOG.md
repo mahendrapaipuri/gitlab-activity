@@ -1,6 +1,19 @@
 # Changelog
 
 <!-- <START NEW CHANGELOG ENTRY> -->
+
+## Unreleased (2025-02-08)
+
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/7494706b954459aa5d1da15d2fbcb920653cba31...2dccb2994b3a48d3966dc4e72399f8a7ca28e58a?from_project_id=51534402&straight=false))
+
+### Maintenance and upkeep improvements
+
+- refactor: Verify auth token before using it [!24](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/24) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
+
+[@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
+
 <!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.1.3 (2024-11-04)
