@@ -129,7 +129,7 @@ tests:
   stage: test
   parallel:
     matrix:
-      - PYVER: ["3.8", "3.9", "3.10", "3.11"]
+      - PYVER: ["3.9", "3.10", "3.11", "3.12", "3.13"]
   script:
     # Install hatch first. Install it from Git until
     # a release with [PR#1002](https://github.com/pypa/hatch/pull/1002)
