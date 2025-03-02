@@ -183,6 +183,7 @@ profile = "black"
 [tool.black]
 line-length = 88
 skip-string-normalization = true
+skip-source-first-line = true
 target-version = [
     'py39',
     'py310',
