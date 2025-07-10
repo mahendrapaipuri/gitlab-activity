@@ -49,8 +49,8 @@ def get_activity(target, since, until=None, activity=None, token=None, cached=Fa
         any str that is parsed with dateutil.parser.parse.
     until : str | None, default: None
         Return issues/MRs with activity until this date or git reference. Can be
-        any str that is parsed with dateutil.parser.parse. If none, today's
-        date will be used.
+        any str that is parsed with dateutil.parser.parse. If none, the current
+        date and time will be used.
     activity : ["issue", "merge_requests"], default: None
         Return only issues or MRs. If None, only merge_requests will be returned
     token : str | None, default: None
