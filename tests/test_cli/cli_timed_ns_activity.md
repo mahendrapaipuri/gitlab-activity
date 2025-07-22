@@ -15,6 +15,7 @@
 
 ### gitlab-activity
 
+- Look for auth token from CI vars [!4](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/4) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 - Get created and also merged/closed activity [!3](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/3) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 - Improve API and grouping logic [!2](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/2) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 

@@ -1,8 +1,11 @@
 """Tests for utility functions"""
 import os
+import time
 from pathlib import Path
 from unittest import mock
 
+import dateutil.parser
+import pytz
 import toml
 from pytest import mark
 from pytest import raises
@@ -164,3 +167,68 @@ def test_get_datetime_and_type():
     with raises(RuntimeError) as excinfo:
         get_datetime_and_type('gitlab.com', 12345, '2023-15-10', 'token')
     assert str(excinfo.value) == '2023-15-10 not found as a ref or valid date format'
+
+
+def test_get_datetime_and_type_converts_git_ref_datetime_to_utc():
+    """Test datetime from a git ref is normalised to UTC."""
+
+    commit_dt = dateutil.parser.parse("2025-01-01T09:00:00+09:00")
+    expected_utc_dt = dateutil.parser.parse("2025-01-01T00:00:00+00:00")
+
+    assert commit_dt.astimezone(pytz.utc) == expected_utc_dt.astimezone(pytz.utc)
+
+    with mock.patch("gitlab_activity.utils._get_datetime_from_git_ref") as mock_get_dt:
+        mock_get_dt.return_value = commit_dt
+
+        dt, is_ref = utils.get_datetime_and_type(
+            "gitlab.com", 12345, "dummy_ref", "token"
+        )
+
+    assert is_ref is True
+    assert dt.tzinfo == pytz.utc
+    assert dt == expected_utc_dt
+
+
+def test_get_datetime_and_type_converts_string_with_timezone_to_utc():
+    """Test string datetime with offset is normalised to UTC"""
+
+    date_str = "2025-07-01T10:00:00+05:30"
+    expected_utc_dt = dateutil.parser.parse("2025-07-01T04:30:00+00:00")
+
+    with mock.patch("gitlab_activity.utils._get_datetime_from_git_ref") as mock_get_dt:
+        mock_get_dt.side_effect = AssertionError(
+            "_get_datetime_from_git_ref should not be called"
+        )
+
+        dt, is_ref = utils.get_datetime_and_type("gitlab.com", 12345, date_str, "token")
+
+    assert is_ref is False
+    assert dt.tzinfo == pytz.utc
+    assert dt == expected_utc_dt
+
+
+def test_get_datetime_and_type_converts_string_without_timezone_to_utc():
+    """Test string datetime without offset is treated as local time and then normalised to UTC"""
+
+    fake_tz_name = "Asia/Tokyo"  # UTC+09:00
+
+    date_str = "2025-07-01T11:30:00"
+    expected_utc_dt = dateutil.parser.parse("2025-07-01T02:30:00+00:00")
+
+    with mock.patch.dict(os.environ, {"TZ": fake_tz_name}):
+        time.tzset()
+
+        with mock.patch(
+            "gitlab_activity.utils._get_datetime_from_git_ref"
+        ) as mock_get_dt:
+            mock_get_dt.side_effect = AssertionError(
+                "_get_datetime_from_git_ref should not be called"
+            )
+
+            dt, is_ref = utils.get_datetime_and_type(
+                "gitlab.com", 12345, date_str, "token"
+            )
+
+    assert is_ref is False
+    assert dt.tzinfo == pytz.utc
+    assert dt == expected_utc_dt

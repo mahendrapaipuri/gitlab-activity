@@ -11,7 +11,7 @@ from gitlab_activity import START_MARKER
 
 # Repo used for tests
 NS, REPO = ('mahendrapaipuri', 'gitlab-activity-tests')
-TIME_WINDOW = '-s 2023-10-20 -u 2023-10-28'
+TIME_WINDOW = '-s 2023-10-20T12:00:00 -u 2023-10-28T12:00:00'
 CONFIG_PATH = (
     Path('tests').resolve().joinpath('resources', 'config', '.gitlab-activity.toml')
 )
@@ -39,12 +39,12 @@ URL = f'https://gitlab.com/{NS}/{REPO}'
         ),
         # CLI with only namespace
         (
-            f'gitlab-activity -t {NS} -s 2021-01-01 -u 2023-10-28',
+            f'gitlab-activity -t {NS} -s 2021-01-01T12:00:00 -u 2023-10-28T12:00:00+02:00',
             'cli_timed_ns_activity',
         ),
         # CLI with only group
         (
-            f'gitlab-activity -t idris-cnrs/jupyter -s 2023-07-01 -u 2023-09-01',
+            f'gitlab-activity -t idris-cnrs/jupyter -s 2023-07-01T12:00:00 -u 2023-09-01T12:00:00+01:00',
             'cli_timed_group_activity',
         ),
         # CLI with all time activity
@@ -54,7 +54,7 @@ URL = f'https://gitlab.com/{NS}/{REPO}'
         ),
         # CLI with no target. We should get activity of current repo
         (
-            f'gitlab-activity -s 2023-09-01 -u 2023-10-28',
+            f'gitlab-activity -s 2023-09-01T12:00:00+01:00 -u 2023-10-28T12:00:00+01:00',
             'cli_no_target',
         ),
     ],
@@ -271,7 +271,7 @@ def test_cli_nonexistent_branch(tmpdir):
     path_output = path_tmp.joinpath('out.md')
 
     cmd = (
-        f'gitlab-activity -c {CONFIG_PATH} -t {NS}/{REPO} -s 2023-09-20 '
+        f'gitlab-activity -c {CONFIG_PATH} -t {NS}/{REPO} -s 2023-09-20T00:00:00+01:00 '
         f'-o {path_output} -b foo'
     )
     run(cmd.split(), check=True)

@@ -669,9 +669,9 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, token):
             msg = f'{datetime_or_git_ref} not found as a ref or valid date format'
             raise RuntimeError(msg) from None
         else:
-            return (dt, False)
+            return (dt.astimezone(pytz.utc), False)
     else:
-        return (dt, True)
+        return (dt.astimezone(pytz.utc), True)
 
 
 def _get_datetime_from_git_ref(domain, repoid, ref, token):

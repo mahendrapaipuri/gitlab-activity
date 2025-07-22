@@ -118,8 +118,9 @@ def configure(ctx, _, filename):
     '--since',
     type=str,
     help="""Return activity since this date or git reference.
-    Can be any string that is parsed with `dateutil.parser.parse`. If None, activity
-    since latest tag will be reported.""",
+    Can be any string that is parsed with `dateutil.parser.parse`.
+    The string can include a UTC offset, otherwise local time will be assumed.
+    If None, activity since latest tag will be reported.""",
     default=None,
     show_default=True,
     metavar='<str>',
@@ -129,8 +130,9 @@ def configure(ctx, _, filename):
     '--until',
     type=str,
     help="""Return activity until this date or git reference.
-    Can be any string that is parsed with `dateutil.parser.parse`. If None, today's
-    date will be used.""",
+    Can be any string that is parsed with `dateutil.parser.parse`.
+    The string can include a UTC offset, otherwise local time will be assumed.
+    If None, the current date and time will be used.""",
     default=None,
     show_default=True,
     metavar='<str>',
