@@ -2,18 +2,22 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
-## Unreleased (2025-03-02)
+## Unreleased (2025-07-22)
 
-([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/7494706b954459aa5d1da15d2fbcb920653cba31...b8f091570c0cbacaa545327c48b68428a500dc94?from_project_id=51534402&straight=false))
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/7494706b954459aa5d1da15d2fbcb920653cba31...540d180b7cefcf08734c220a495ddce4d6104d44?from_project_id=51534402&straight=false))
 
 ### Maintenance and upkeep improvements
 
 - build: Drop support for Py 3.8 and add to 3.12 and 3.13 [!25](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/25) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 - refactor: Verify auth token before using it [!24](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/24) ([@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
 
+### Unlabelled Merged MRs
+
+- Use timezones of commit times and `since` strings [!26](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/26) ([@alexjfisher](https://gitlab.com/alexjfisher), [@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
 ### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
 
-[@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
+[@alexjfisher](https://gitlab.com/alexjfisher) | [@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
 
 <!-- <END NEW CHANGELOG ENTRY> -->
 
