@@ -6,6 +6,7 @@ import click
 
 from gitlab_activity import DEFAULT_BOT_USERS
 from gitlab_activity import DEFAULT_CATEGORIES
+from gitlab_activity import DEFAULT_EXCLUDE_LABELS
 from gitlab_activity import END_MARKER
 from gitlab_activity import START_MARKER
 from gitlab_activity.git import get_remote_ref
@@ -245,6 +246,12 @@ def configure(ctx, _, filename):
     type=ActivityParamType,
     hidden=True,
 )
+@click.option(
+    '--exclude-labels',
+    help="""List of labels to exclude from changelog""",
+    type=ActivityParamType,
+    hidden=True,
+)
 def main(**kwargs):
     """Generate a markdown changelog of GitLab activity within a date window"""
     if not git_installed_check():  # pragma: no cover
@@ -348,6 +355,12 @@ def main(**kwargs):
     if kwargs['bot_users'] is None or not kwargs['bot_users']:
         log('[activity.bot_users] not found in config. Using default bot_users')
         kwargs['bot_users'] = DEFAULT_BOT_USERS
+    if kwargs['exclude_labels'] is None:
+        log(
+            '[activity.exclude_labels] not found in config. Using '
+            'default exclude_labels'
+        )
+        kwargs['exclude_labels'] = DEFAULT_EXCLUDE_LABELS
 
     # If either issues only or merge_requests only are provided in categories,
     # use the same for the other one
@@ -379,6 +392,7 @@ def main(**kwargs):
         'branch': kwargs['branch'],
         'categories': kwargs['categories'],
         'bot_users': kwargs['bot_users'],
+        'exclude_labels': kwargs['exclude_labels'],
         'cached': kwargs['cache'],
     }
 

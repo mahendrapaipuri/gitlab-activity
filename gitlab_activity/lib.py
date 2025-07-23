@@ -124,6 +124,7 @@ def generate_all_activity_md(
     branch=None,
     categories=None,
     bot_users=None,
+    exclude_labels=None,
     cached=False,
 ):
     """Generate a full markdown changelog of GitLab activity of a repo based on
@@ -169,6 +170,9 @@ def generate_all_activity_md(
     bot_users: list of str | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
         that contain 'bot' will be treated as bot users.
+    exclude_labels: list of str | None, default: None
+        Items that have any of these labels will be ignored when generating the
+        changelog and contributors list.
     cached: bool, default: False
         If True activity data will be cached in ~/.cache/gitlab-activity-cache folder
         in form of CSV files
@@ -223,6 +227,7 @@ def generate_all_activity_md(
             branch=branch,
             categories=categories,
             bot_users=bot_users,
+            exclude_labels=exclude_labels,
             cached=cached,
         )
 
@@ -349,6 +354,7 @@ def generate_activity_md(
     branch=None,
     categories=None,
     bot_users=None,
+    exclude_labels=None,
     cached=False,
 ):
     """Generate a markdown changelog of GitLab activity within a date window.
@@ -402,6 +408,9 @@ def generate_activity_md(
     bot_users: list of strs | None, default: None
         A list of bot users to be excluded from contributors list. By default usernames
         that contain 'bot' will be treated as bot users.
+    exclude_labels: list of str | None, default: None
+        Any issue or merge request having these labels will be ignored in the
+        generated changelog and contributor list.
     cached: bool, default: False
         If True activity data will be cached in ~/.cache/gitlab-activity-cache folder
         in form of CSV files
@@ -439,6 +448,15 @@ def generate_activity_md(
         token=token,
         cached=cached,
     )
+
+    # Drop activity labelled with any of the `exclude_labels`
+    if exclude_labels:
+        mask_skip = data['labels'].map(
+            lambda rlabels: any(rlabel in set(exclude_labels) for rlabel in rlabels)
+        )
+        to_drop = data.index[mask_skip]
+        data.drop(index=to_drop, inplace=True)
+
     if data.empty:
         return None
 

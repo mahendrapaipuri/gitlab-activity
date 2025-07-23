@@ -58,4 +58,7 @@ DEFAULT_BOT_USERS = [
     'ghost1',
 ]
 
+# Default labels that should be completely skipped from changelog
+DEFAULT_EXCLUDE_LABELS = ['skip-changelog']
+
 __all__ = ['__version__']
