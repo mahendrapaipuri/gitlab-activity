@@ -449,6 +449,9 @@ def generate_activity_md(
         cached=cached,
     )
 
+    if data.empty:
+        return None
+
     # Drop activity labelled with any of the `exclude_labels`
     if exclude_labels:
         mask_skip = data['labels'].map(
@@ -456,9 +459,6 @@ def generate_activity_md(
         )
         to_drop = data.index[mask_skip]
         data.drop(index=to_drop, inplace=True)
-
-    if data.empty:
-        return None
 
     # add column for participants in each issue (not just original author)
     data['contributors'] = [[]] * len(data)
