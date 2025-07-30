@@ -59,6 +59,20 @@ bot_users = [
 Using such a config, all these users will be excluded in
 the generated report in the contributors list.
 
+You may want to completely omit some issues or merge requests with specific labels from the changelog.
+Specify such labels under `exclude_labels`:
+
+```
+[activity]
+
+exclude_labels = [
+  "skip-changelog",
+]
+```
+
+Items carrying any of these labels will be removed from the changelog and won't
+be counted in the contributors list.
+
 `activity` section has another subsection called `activity.categories` which should be
 used to define the labels used for the repository. An excerpt is as follows:
 

@@ -2,7 +2,11 @@
 import os
 from functools import lru_cache
 
+import pandas as pd
 import pytest
+
+from gitlab_activity import DEFAULT_CATEGORIES
+from gitlab_activity import lib
 
 # Set an environment variable for tests
 os.environ['PYTEST'] = '1'
@@ -51,3 +55,90 @@ def sp_completed_process():
             self.stderr = stderr.encode()
 
     return MockSubprocessReturn
+
+
+@pytest.fixture
+def fake_activity_df():
+    df = pd.DataFrame(
+        [
+            {
+                'state': 'merged',
+                'id': 'gid://gitlab/MergeRequest/1',
+                'iid': 1,
+                'title': 'Add feature',
+                'webUrl': 'https://gitlab.com/org/repo/-/merge_requests/1',
+                'createdAt': '2025-07-23T00:00:00Z',
+                'updatedAt': '2025-07-23T00:00:00Z',
+                'mergedAt': '2025-07-23T08:00:00Z',
+                'mergeCommitSha': 'sha1',
+                'sourceBranch': 'feat',
+                'reference': '!1',
+                'sourceProject': {'webUrl': 'https://gitlab.com/org/repo'},
+                'targetBranch': 'main',
+                'labels': ['feature'],
+                'author': ('alice', 'https://gitlab.com/alice'),
+                'mergeUser': ('alice', 'https://gitlab.com/alice'),
+                'awardEmoji': {'edges': []},
+                'commenters': {'edges': []},
+                'committers': [('alice', 'https://gitlab.com/alice')],
+                'reviewers': [],
+                'participants': [('alice', 'https://gitlab.com/alice')],
+                'activity': 'merge_requests',
+                'org': 'org',
+                'repo': 'repo2',
+                'emojis': [],
+                'closedAt': None,
+                'mergeRequestsCount': None,
+            },
+            {
+                'state': 'merged',
+                'id': 'gid://gitlab/MergeRequest/2',
+                'iid': 2,
+                'title': 'Skip this',
+                'webUrl': 'https://gitlab.com/org/repo/-/merge_requests/2',
+                'createdAt': '2025-07-23T00:00:00Z',
+                'updatedAt': '2025-07-23T00:00:00Z',
+                'mergedAt': '2025-07-23T10:00:00Z',
+                'mergeCommitSha': 'sha2',
+                'sourceBranch': 'skip',
+                'reference': '!2',
+                'sourceProject': {'webUrl': 'https://gitlab.com/org/repo'},
+                'targetBranch': 'main',
+                'labels': ['foo', 'skip-changelog', 'bar', 'feature'],
+                'author': ('bob', 'https://gitlab.com/bob'),
+                'mergeUser': ('bob', 'https://gitlab.com/bob'),
+                'awardEmoji': {'edges': []},
+                'commenters': {'edges': []},
+                'committers': [('bob', 'https://gitlab.com/bob')],
+                'reviewers': [],
+                'participants': [('bob', 'https://gitlab.com/bob')],
+                'activity': 'merge_requests',
+                'org': 'org',
+                'repo': 'repo2',
+                'emojis': [],
+                'closedAt': None,
+                'mergeRequestsCount': None,
+            },
+        ]
+    )
+    df.since_dt = pd.Timestamp('2025-07-01T00:00:00Z')
+    df.until_dt = pd.Timestamp('2025-07-24T00:00:00Z')
+    df.since_dt_str = '2025-07-01T00:00:00Z'
+    df.until_dt_str = '2025-07-24T00:00:00Z'
+    df.since_is_git_ref = False
+    df.until_is_git_ref = False
+    return df
+
+
+@pytest.fixture
+def changelog_md():
+    return lib.generate_activity_md(
+        'org/repo',
+        since='2025-07-01',
+        until='2025-07-24',
+        activity=['merge_requests'],
+        include_contributors_list=True,
+        categories=DEFAULT_CATEGORIES,
+        bot_users=[],
+        exclude_labels=['skip-changelog'],
+    )

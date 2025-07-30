@@ -23,7 +23,10 @@ SCHEMA = json.loads(SCHEMA)
 
 
 class CustomParamType(click.ParamType):
-    """Custom Parameter Type used in click for casting labels_metadata and bot_users"""
+    """
+    Custom Parameter Type used in click for casting labels_metadata, bot_users
+    and exclude_labels
+    """
 
     name = "config_data"
 

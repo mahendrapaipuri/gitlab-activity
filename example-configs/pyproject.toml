@@ -150,6 +150,10 @@
 #   "gitlab-bot",
 #   "ghost1",
 # ]
+# # Labels that should be completely skipped from changelog
+# exclude_labels = [
+#   "skip-changelog",
+# ]
 # #
 # # Subsection categories inside activity can be used to define labels used by the project
 # # in both issues and merge_requests. This gives flexibility for the projects that use 
