@@ -3,6 +3,18 @@
 <!-- <START NEW CHANGELOG ENTRY> -->
 <!-- <END NEW CHANGELOG ENTRY> -->
 
+## 0.2.0 (2025-08-21)
+
+([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/fd399ee1ef08e171a46167bd37240b3625e9352a...79d4bbe2da151b2fe5a149cfb3af77a4ec6c959f?from_project_id=51534402&straight=false))
+
+### Unlabelled Merged MRs
+
+- Add `exclude_labels` option [!27](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/merge_requests/27) ([@alexjfisher](https://gitlab.com/alexjfisher), [@mahendrapaipuri](https://gitlab.com/mahendrapaipuri))
+
+### [Contributors to this release](https://mahendrapaipuri.gitlab.io/gitlab-activity/usage#contributors-list)
+
+[@alexjfisher](https://gitlab.com/alexjfisher) | [@mahendrapaipuri](https://gitlab.com/mahendrapaipuri)
+
 ## 0.1.4 (2025-07-22)
 
 ([Full Changelog](https://gitlab.com/mahendrapaipuri/gitlab-activity/-/compare/7494706b954459aa5d1da15d2fbcb920653cba31...540d180b7cefcf08734c220a495ddce4d6104d44?from_project_id=51534402&straight=false))
