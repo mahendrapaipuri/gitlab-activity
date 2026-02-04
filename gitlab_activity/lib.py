@@ -3,11 +3,11 @@ import copy
 import datetime
 import os
 import re
+from datetime import timezone
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pytz
 
 from gitlab_activity import ALLOWED_ACTIVITIES
 from gitlab_activity import DEFAULT_CATEGORIES
@@ -190,7 +190,7 @@ def generate_all_activity_md(
     if target_type == 'project':
         tags = get_all_tags(domain, target, targetid, token)
     else:
-        until = f'{datetime.datetime.now().astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+        until = f'{datetime.datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ}'
         tags = [
             (f'Activity since {since}', until, until),
             (f'Activity since {since}', since, since),
