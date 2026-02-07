@@ -1,11 +1,11 @@
 """Tests for utility functions"""
 import os
 import time
+from datetime import timezone
 from pathlib import Path
 from unittest import mock
 
 import dateutil.parser
-import pytz
 import toml
 from pytest import mark
 from pytest import raises
@@ -175,7 +175,9 @@ def test_get_datetime_and_type_converts_git_ref_datetime_to_utc():
     commit_dt = dateutil.parser.parse("2025-01-01T09:00:00+09:00")
     expected_utc_dt = dateutil.parser.parse("2025-01-01T00:00:00+00:00")
 
-    assert commit_dt.astimezone(pytz.utc) == expected_utc_dt.astimezone(pytz.utc)
+    assert commit_dt.astimezone(timezone.utc) == expected_utc_dt.astimezone(
+        timezone.utc
+    )
 
     with mock.patch("gitlab_activity.utils._get_datetime_from_git_ref") as mock_get_dt:
         mock_get_dt.return_value = commit_dt
@@ -185,7 +187,7 @@ def test_get_datetime_and_type_converts_git_ref_datetime_to_utc():
         )
 
     assert is_ref is True
-    assert dt.tzinfo == pytz.utc
+    assert dt.tzinfo == timezone.utc
     assert dt == expected_utc_dt
 
 
@@ -203,7 +205,7 @@ def test_get_datetime_and_type_converts_string_with_timezone_to_utc():
         dt, is_ref = utils.get_datetime_and_type("gitlab.com", 12345, date_str, "token")
 
     assert is_ref is False
-    assert dt.tzinfo == pytz.utc
+    assert dt.tzinfo == timezone.utc
     assert dt == expected_utc_dt
 
 
@@ -230,5 +232,5 @@ def test_get_datetime_and_type_converts_string_without_timezone_to_utc():
             )
 
     assert is_ref is False
-    assert dt.tzinfo == pytz.utc
+    assert dt.tzinfo == timezone.utc
     assert dt == expected_utc_dt

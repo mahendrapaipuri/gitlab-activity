@@ -5,12 +5,12 @@ import os
 import re
 import subprocess
 import sys
+from datetime import timezone
 from pathlib import Path
 
 import click
 import dateutil.parser
 import jsonschema
-import pytz
 import requests
 import toml
 from importlib_resources import files
@@ -405,7 +405,7 @@ def get_all_tags(domain, target, targetid, token):
 
     # Return [] if there are no tags
     if len(response.json()) == 0:
-        until_dt = str(datetime.datetime.now().astimezone(pytz.utc))
+        until_dt = str(datetime.datetime.now(timezone.utc))
         all_tags = [['Untagged release', '', until_dt]]
     else:
         all_tags = [
@@ -660,7 +660,7 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, token):
     # Default a blank datetime_or_git_ref to current UTC time, which makes sense
     # to set the until flags default value.
     if datetime_or_git_ref is None:
-        dt = datetime.datetime.now().astimezone(pytz.utc)
+        dt = datetime.datetime.now(timezone.utc)
         return (dt, False)
 
     try:
@@ -672,9 +672,9 @@ def get_datetime_and_type(domain, targetid, datetime_or_git_ref, token):
             msg = f'{datetime_or_git_ref} not found as a ref or valid date format'
             raise RuntimeError(msg) from None
         else:
-            return (dt.astimezone(pytz.utc), False)
+            return (dt.astimezone(timezone.utc), False)
     else:
-        return (dt.astimezone(pytz.utc), True)
+        return (dt.astimezone(timezone.utc), True)
 
 
 def _get_datetime_from_git_ref(domain, repoid, ref, token):
