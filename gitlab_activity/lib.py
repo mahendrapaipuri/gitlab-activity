@@ -785,7 +785,11 @@ def insert_entry(changelog, entry):
     # Split existing changelog at START_MARKER and END_MARKER
     head, body = changelog.split(START_MARKER)
     # Split body at END_MARKER to get previous entries
-    _, previous = body.split(END_MARKER)
+    previous_fallback, previous = body.split(END_MARKER)
+
+    # If previous is empty, it means END_MARKER is at the end of the file
+    if not previous.strip():
+        previous = previous_fallback
 
     # Based on release_entry make new entry
     if release_entry:
